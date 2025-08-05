@@ -84,7 +84,8 @@
             box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
             width: 100%;
             max-width: 420px; /* Mobile-like width */
-            margin: 20px auto; /* Centered with top/bottom margin */
+            /* Removed margin-top, kept auto for horizontal centering and margin-bottom for spacing */
+            margin: 0 auto 20px auto; 
             /* padding-top will be set dynamically by JS to account for sticky header/category bar */
         }
         .category-button {
