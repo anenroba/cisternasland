@@ -399,11 +399,10 @@
             mainContainer.style.paddingTop = `${headerHeight + categoryBarHeight}px`;
         }
 
-        // Cargar todas las categorías y productos al inicio
-        document.addEventListener('DOMContentLoaded', () => {
+        // Cargar todas las categorías y productos al inicio y ajustar el layout
+        window.addEventListener('load', () => {
             renderAllCategories();
-            // Llamar a adjustLayout después de un pequeño retraso para asegurar que las alturas se calculen correctamente
-            setTimeout(adjustLayout, 0); 
+            adjustLayout(); // Ajustar el layout al cargar completamente la página
 
             // Establecer el botón "Entradas" como activo por defecto
             const firstCategoryButton = document.querySelector('.category-button[data-category="entradas"]');
