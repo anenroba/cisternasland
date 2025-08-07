@@ -35,75 +35,71 @@ async function fetchAndCacheMenu() {
     }
 }
 
-// Función para agrupar los datos planos en una estructura jerárquica
-function groupMenuData(data) {
-    const grouped = {};
-    data.forEach(item => {
-        if (!grouped[item.categoria]) {
-            grouped[item.categoria] = {};
-        }
-        if (!grouped[item.categoria][item.subcategoria]) {
-            grouped[item.categoria][item.subcategoria] = [];
-        }
-        grouped[item.categoria][item.subcategoria].push(item);
-    });
-    return grouped;
-}
-
-// Función para renderizar la carta en el HTML
+// Función para renderizar la carta en el HTML usando la estructura de la API
 function renderMenu(dataToRender) {
     menuContainer.innerHTML = '';
-    if (dataToRender.length === 0) {
+    if (!dataToRender || dataToRender.length === 0) {
         menuContainer.innerHTML = '<p class="loading-message">La carta está vacía.</p>';
         return;
     }
 
-    const groupedData = groupMenuData(dataToRender);
+    // Usaremos un Set para mantener un registro de las categorías ya renderizadas
+    const renderedCategories = new Set();
+    
+    dataToRender.forEach(item => {
+        // Si la categoría no ha sido renderizada, la creamos
+        if (!renderedCategories.has(item.categoria)) {
+            const categoryDiv = document.createElement('div');
+            categoryDiv.classList.add('category');
+            categoryDiv.id = `category-${item.categoria.replace(/\s/g, '-')}`;
 
-    for (const categoria in groupedData) {
-        const categoryDiv = document.createElement('div');
-        categoryDiv.classList.add('category');
-
-        const categoryHeader = document.createElement('div');
-        categoryHeader.classList.add('category-header');
-        categoryHeader.innerHTML = `
-            <h3>${categoria}</h3>
-            <i class="fas fa-chevron-down"></i>
-        `;
-        categoryDiv.appendChild(categoryHeader);
-
-        const subcategoriesContainer = document.createElement('div');
-        subcategoriesContainer.classList.add('subcategories-container');
-
-        for (const subcategoria in groupedData[categoria]) {
-            const subcategoryHeader = document.createElement('div');
-            subcategoryHeader.classList.add('subcategory-header');
-            subcategoryHeader.innerHTML = `
-                <h4>${subcategoria}</h4>
+            const categoryHeader = document.createElement('div');
+            categoryHeader.classList.add('category-header');
+            categoryHeader.innerHTML = `
+                <h3>${item.categoria}</h3>
                 <i class="fas fa-chevron-down"></i>
             `;
-            subcategoriesContainer.appendChild(subcategoryHeader);
+            categoryDiv.appendChild(categoryHeader);
 
-            const productsContainer = document.createElement('div');
-            productsContainer.classList.add('products-container');
+            const subcategoriesContainer = document.createElement('div');
+            subcategoriesContainer.classList.add('subcategories-container');
+            categoryDiv.appendChild(subcategoriesContainer);
 
-            groupedData[categoria][subcategoria].forEach(producto => {
-                const productCard = document.createElement('div');
-                productCard.classList.add('product-card');
-                productCard.innerHTML = `
-                    <div class="product-info">
-                        <p class="product-name">${producto.nombre}</p>
-                        <p class="product-description">${producto.descripcion}</p>
-                    </div>
-                    <span class="product-price">$${new Intl.NumberFormat('es-CL').format(producto.precio)}</span>
-                `;
-                productsContainer.appendChild(productCard);
-            });
-            subcategoriesContainer.appendChild(productsContainer);
+            menuContainer.appendChild(categoryDiv);
+            renderedCategories.add(item.categoria);
         }
-        categoryDiv.appendChild(subcategoriesContainer);
-        menuContainer.appendChild(categoryDiv);
-    }
+
+        // Ahora que la categoría existe, buscamos el contenedor de subcategorías
+        const currentCategoryDiv = document.getElementById(`category-${item.categoria.replace(/\s/g, '-')}`);
+        const subcategoriesContainer = currentCategoryDiv.querySelector('.subcategories-container');
+        
+        // Creamos la subcategoría y sus productos
+        const subcategoryHeader = document.createElement('div');
+        subcategoryHeader.classList.add('subcategory-header');
+        subcategoryHeader.innerHTML = `
+            <h4>${item.subcategoria}</h4>
+            <i class="fas fa-chevron-down"></i>
+        `;
+        subcategoriesContainer.appendChild(subcategoryHeader);
+
+        const productsContainer = document.createElement('div');
+        productsContainer.classList.add('products-container');
+        subcategoriesContainer.appendChild(productsContainer);
+        
+        item.productos.forEach(producto => {
+            const productCard = document.createElement('div');
+            productCard.classList.add('product-card');
+            productCard.innerHTML = `
+                <div class="product-info">
+                    <p class="product-name">${producto.nombre}</p>
+                    <p class="product-description">${producto.descripcion}</p>
+                </div>
+                <span class="product-price">$${new Intl.NumberFormat('es-CL').format(producto.precio)}</span>
+            `;
+            productsContainer.appendChild(productCard);
+        });
+    });
+
     addAccordionFunctionality();
 }
 
@@ -127,14 +123,27 @@ function addAccordionFunctionality() {
 
 function filterMenu(searchTerm) {
     const lowerCaseSearchTerm = searchTerm.toLowerCase();
+    
+    // Filtramos los datos a nivel de subcategoría
+    const filteredData = menuDataGlobal.map(item => {
+        // Filtramos los productos dentro de cada subcategoría
+        const filteredProductos = item.productos.filter(producto =>
+            producto.nombre.toLowerCase().includes(lowerCaseSearchTerm) ||
+            producto.descripcion.toLowerCase().includes(lowerCaseSearchTerm)
+        );
+        // Devolvemos el ítem de la subcategoría solo si tiene productos que coinciden
+        if (filteredProductos.length > 0) {
+            return {
+                ...item,
+                productos: filteredProductos
+            };
+        }
+        return null;
+    }).filter(item => item !== null); // Eliminar las subcategorías vacías
 
-    const filteredData = menuDataGlobal.filter(item =>
-        item.nombre.toLowerCase().includes(lowerCaseSearchTerm) ||
-        item.descripcion.toLowerCase().includes(lowerCaseSearchTerm) ||
-        item.categoria.toLowerCase().includes(lowerCaseSearchTerm) ||
-        item.subcategoria.toLowerCase().includes(lowerCaseSearchTerm)
-    );
     renderMenu(filteredData);
+
+    // Expandir las categorías y subcategorías si se está buscando
     if (searchTerm) {
         document.querySelectorAll('.category-header, .subcategory-header').forEach(header => {
             header.classList.add('active');
