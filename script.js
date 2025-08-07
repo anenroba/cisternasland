@@ -1,5 +1,5 @@
 const menuContainer = document.getElementById('menu-container');
-const API_URL = 'http://localhost:3000/api/carta'; // Asegúrate de que esta URL sea correcta
+const API_URL = 'https://api-swa.onrender.com/api/carta'; // URL de la API actualizada
 
 // Función para obtener los datos de la carta
 async function fetchMenu() {
