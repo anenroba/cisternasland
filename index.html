@@ -14,14 +14,20 @@
         <p>Tu sistema de pedidos en línea</p>
     </header>
 
-    <div class="search-bar-container">
-        <input type="text" id="search-input" placeholder="Buscar en la carta...">
-        <i class="fas fa-search"></i>
+    <div id="initial-buttons" class="button-container">
+        <button id="drink-me-btn" class="main-btn">DRINK ME</button>
+        <button id="eat-me-btn" class="main-btn">EAT ME</button>
     </div>
 
-    <main id="menu-container">
-        <p class="loading-message">Cargando carta...</p>
-    </main>
+    <div id="menu-content" class="hidden">
+        <div class="search-bar-container">
+            <input type="text" id="search-input" placeholder="Buscar en la carta...">
+            <i class="fas fa-search"></i>
+        </div>
+        <main id="menu-container">
+            <p class="loading-message">Cargando carta...</p>
+        </main>
+    </div>
 
     <script src="script.js"></script>
 

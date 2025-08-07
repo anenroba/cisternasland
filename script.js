@@ -1,37 +1,45 @@
 const menuContainer = document.getElementById('menu-container');
 const searchInput = document.getElementById('search-input');
+const initialButtons = document.getElementById('initial-buttons');
+const menuContent = document.getElementById('menu-content');
+const drinkMeBtn = document.getElementById('drink-me-btn');
+const eatMeBtn = document.getElementById('eat-me-btn');
+
 const API_URL = 'https://api-swa.onrender.com/api/carta';
 const LOCAL_STORAGE_KEY = 'cisternasMenuData';
 
 let menuDataGlobal = []; // Almacenará los datos originales de la carta
+let currentFilteredData = []; // Almacenará los datos de la sección activa (Bebida o Comida)
+
+// Mapeo de categorías principales a las secciones "DRINK ME" y "EAT ME"
+const DRINK_ME_CATEGORIES = new Set([
+    'Bebida', 'Coctelería', 'Sours', 'Mojitos', 'Spritz', 'Tequila', 'Clásicos de Siempre',
+    'Piscos', 'Whisky', 'Vinos & Espumantes', 'Gin'
+]);
+const EAT_ME_CATEGORIES = new Set([
+    'Comida', 'Tablas', 'Sushi', 'Dulce Final', 'Piqueos', 'Hamburguesas', 'Pastas'
+]);
 
 // Función para obtener los datos de la carta, usando localStorage
 async function fetchAndCacheMenu() {
-    menuContainer.innerHTML = '<p class="loading-message">Cargando carta...</p>';
-
     const cachedData = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (cachedData) {
         console.log('Cargando carta desde localStorage...');
         menuDataGlobal = JSON.parse(cachedData);
-        renderMenu(menuDataGlobal);
-        return;
-    }
-
-    console.log('Cargando carta desde la API...');
-    try {
-        const response = await fetch(API_URL);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+    } else {
+        console.log('Cargando carta desde la API...');
+        try {
+            const response = await fetch(API_URL);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+            menuDataGlobal = data;
+        } catch (error) {
+            console.error('Error al obtener la carta:', error);
+            menuContainer.innerHTML = '<p class="loading-message">Error al cargar la carta. Por favor, inténtelo de nuevo más tarde.</p>';
         }
-        const data = await response.json();
-        
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
-        menuDataGlobal = data;
-        
-        renderMenu(menuDataGlobal);
-    } catch (error) {
-        console.error('Error al obtener la carta:', error);
-        menuContainer.innerHTML = '<p class="loading-message">Error al cargar la carta. Por favor, inténtelo de nuevo más tarde.</p>';
     }
 }
 
@@ -43,11 +51,9 @@ function renderMenu(dataToRender) {
         return;
     }
 
-    // Usaremos un Set para mantener un registro de las categorías ya renderizadas
     const renderedCategories = new Set();
     
     dataToRender.forEach(item => {
-        // Si la categoría no ha sido renderizada, la creamos
         if (!renderedCategories.has(item.categoria)) {
             const categoryDiv = document.createElement('div');
             categoryDiv.classList.add('category');
@@ -69,11 +75,9 @@ function renderMenu(dataToRender) {
             renderedCategories.add(item.categoria);
         }
 
-        // Ahora que la categoría existe, buscamos el contenedor de subcategorías
         const currentCategoryDiv = document.getElementById(`category-${item.categoria.replace(/\s/g, '-')}`);
         const subcategoriesContainer = currentCategoryDiv.querySelector('.subcategories-container');
         
-        // Creamos la subcategoría y sus productos
         const subcategoryHeader = document.createElement('div');
         subcategoryHeader.classList.add('subcategory-header');
         subcategoryHeader.innerHTML = `
@@ -124,14 +128,12 @@ function addAccordionFunctionality() {
 function filterMenu(searchTerm) {
     const lowerCaseSearchTerm = searchTerm.toLowerCase();
     
-    // Filtramos los datos a nivel de subcategoría
-    const filteredData = menuDataGlobal.map(item => {
-        // Filtramos los productos dentro de cada subcategoría
+    // Filtramos los datos de la sección activa, no los globales
+    const filteredData = currentFilteredData.map(item => {
         const filteredProductos = item.productos.filter(producto =>
             producto.nombre.toLowerCase().includes(lowerCaseSearchTerm) ||
             producto.descripcion.toLowerCase().includes(lowerCaseSearchTerm)
         );
-        // Devolvemos el ítem de la subcategoría solo si tiene productos que coinciden
         if (filteredProductos.length > 0) {
             return {
                 ...item,
@@ -139,11 +141,10 @@ function filterMenu(searchTerm) {
             };
         }
         return null;
-    }).filter(item => item !== null); // Eliminar las subcategorías vacías
-
+    }).filter(item => item !== null);
+    
     renderMenu(filteredData);
 
-    // Expandir las categorías y subcategorías si se está buscando
     if (searchTerm) {
         document.querySelectorAll('.category-header, .subcategory-header').forEach(header => {
             header.classList.add('active');
@@ -152,8 +153,24 @@ function filterMenu(searchTerm) {
     }
 }
 
+// Eventos de los botones principales
+drinkMeBtn.addEventListener('click', () => {
+    initialButtons.classList.add('hidden');
+    menuContent.classList.remove('hidden');
+    currentFilteredData = menuDataGlobal.filter(item => DRINK_ME_CATEGORIES.has(item.categoria));
+    renderMenu(currentFilteredData);
+});
+
+eatMeBtn.addEventListener('click', () => {
+    initialButtons.classList.add('hidden');
+    menuContent.classList.remove('hidden');
+    currentFilteredData = menuDataGlobal.filter(item => EAT_ME_CATEGORIES.has(item.categoria));
+    renderMenu(currentFilteredData);
+});
+
 searchInput.addEventListener('input', (e) => {
     filterMenu(e.target.value);
 });
 
+// Cargar los datos y preparar la UI
 document.addEventListener('DOMContentLoaded', fetchAndCacheMenu);
