@@ -26,41 +26,6 @@ p {
     color: #bbb;
 }
 
-/* Contenedor de botones iniciales */
-.button-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 80vh;
-    gap: 2rem;
-}
-
-.main-btn {
-    width: 80%;
-    max-width: 300px;
-    padding: 2rem 1rem;
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #fff;
-    background-color: #007BFF;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s, background-color 0.2s;
-}
-
-.main-btn:hover {
-    background-color: #0056b3;
-    transform: scale(1.05);
-}
-
-/* Ocultar/Mostrar el contenido */
-.hidden {
-    display: none;
-}
-
 /* Barra de búsqueda */
 .search-bar-container {
     display: flex;
@@ -85,11 +50,29 @@ p {
     color: #999;
 }
 
-/* Contenedor principal de la carta */
-main {
-    max-width: 800px;
-    margin: 0 auto;
+/* Contenedor principal de la carta en dos columnas */
+.menu-columns-container {
+    display: flex;
+    gap: 1rem;
+    max-width: 1200px;
+    margin: 1rem auto;
     padding: 0 1rem;
+}
+
+.menu-column {
+    flex: 1;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+}
+
+.column-title {
+    font-size: 1.8rem;
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: #007BFF;
 }
 
 /* Estilos para las categorías (Acordeón) */
@@ -162,7 +145,7 @@ main {
 
 /* Estilos para las tarjetas de productos (cards) */
 .product-card {
-    background-color: #fff;
+    background-color: #f8f9fa;
     border-radius: 8px;
     padding: 1rem;
     margin-bottom: 0.8rem;
@@ -205,25 +188,12 @@ main {
 }
 
 /* Responsive para móviles */
-@media (max-width: 600px) {
-    h1 {
-        font-size: 1.5rem;
-    }
-
-    .search-bar-container {
-        margin: 0.8rem auto;
-    }
-
-    #search-input {
-        font-size: 0.9rem;
-    }
-    
-    .product-card {
+@media (max-width: 800px) {
+    .menu-columns-container {
         flex-direction: column;
+        gap: 0;
     }
-    
-    .product-price {
-        margin: 0.5rem 0 0;
-        align-self: flex-end;
+    .menu-column {
+        margin-bottom: 1rem;
     }
 }

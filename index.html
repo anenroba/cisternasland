@@ -14,19 +14,19 @@
         <p>Tu sistema de pedidos en línea</p>
     </header>
 
-    <div id="initial-buttons" class="button-container">
-        <button id="drink-me-btn" class="main-btn">DRINK ME</button>
-        <button id="eat-me-btn" class="main-btn">EAT ME</button>
+    <div class="search-bar-container">
+        <input type="text" id="search-input" placeholder="Buscar en la carta...">
+        <i class="fas fa-search"></i>
     </div>
 
-    <div id="menu-content" class="hidden">
-        <div class="search-bar-container">
-            <input type="text" id="search-input" placeholder="Buscar en la carta...">
-            <i class="fas fa-search"></i>
-        </div>
-        <main id="menu-container">
-            <p class="loading-message">Cargando carta...</p>
-        </main>
+    <div id="menu-content" class="menu-columns-container">
+        <div id="drink-column" class="menu-column">
+            <h2 class="column-title">DRINK ME 🥤</h2>
+            </div>
+
+        <div id="eat-column" class="menu-column">
+            <h2 class="column-title">EAT ME 🍔</h2>
+            </div>
     </div>
 
     <script src="script.js"></script>

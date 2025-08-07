@@ -1,59 +1,73 @@
-const menuContainer = document.getElementById('menu-container');
+const drinkColumn = document.getElementById('drink-column');
+const eatColumn = document.getElementById('eat-column');
 const searchInput = document.getElementById('search-input');
-const initialButtons = document.getElementById('initial-buttons');
-const menuContent = document.getElementById('menu-content');
-const drinkMeBtn = document.getElementById('drink-me-btn');
-const eatMeBtn = document.getElementById('eat-me-btn');
-
 const API_URL = 'https://api-swa.onrender.com/api/carta';
 const LOCAL_STORAGE_KEY = 'cisternasMenuData';
 
 let menuDataGlobal = []; // Almacenará los datos originales de la carta
-let currentFilteredData = []; // Almacenará los datos de la sección activa (Bebida o Comida)
 
 // Mapeo de categorías principales a las secciones "DRINK ME" y "EAT ME"
 const DRINK_ME_CATEGORIES = new Set([
-    'Bebida', 'Coctelería', 'Sours', 'Mojitos', 'Spritz', 'Tequila', 'Clásicos de Siempre',
+    'BEBIDA', 'Coctelería', 'Sours', 'Mojitos', 'Spritz', 'Tequila', 'Clásicos de Siempre',
     'Piscos', 'Whisky', 'Vinos & Espumantes', 'Gin'
 ]);
 const EAT_ME_CATEGORIES = new Set([
     'Comida', 'Tablas', 'Sushi', 'Dulce Final', 'Piqueos', 'Hamburguesas', 'Pastas'
 ]);
 
-// Función para obtener los datos de la carta, usando localStorage
 async function fetchAndCacheMenu() {
+    drinkColumn.innerHTML += '<p class="loading-message">Cargando bebidas...</p>';
+    eatColumn.innerHTML += '<p class="loading-message">Cargando comidas...</p>';
+
     const cachedData = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (cachedData) {
         console.log('Cargando carta desde localStorage...');
         menuDataGlobal = JSON.parse(cachedData);
-    } else {
-        console.log('Cargando carta desde la API...');
-        try {
-            const response = await fetch(API_URL);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
-            menuDataGlobal = data;
-        } catch (error) {
-            console.error('Error al obtener la carta:', error);
-            menuContainer.innerHTML = '<p class="loading-message">Error al cargar la carta. Por favor, inténtelo de nuevo más tarde.</p>';
-        }
-    }
-}
-
-// Función para renderizar la carta en el HTML usando la estructura de la API
-function renderMenu(dataToRender) {
-    menuContainer.innerHTML = '';
-    if (!dataToRender || dataToRender.length === 0) {
-        menuContainer.innerHTML = '<p class="loading-message">La carta está vacía.</p>';
+        renderMenu(menuDataGlobal);
         return;
     }
 
-    const renderedCategories = new Set();
+    console.log('Cargando carta desde la API...');
+    try {
+        const response = await fetch(API_URL);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+        menuDataGlobal = data;
+        
+        renderMenu(menuDataGlobal);
+    } catch (error) {
+        console.error('Error al obtener la carta:', error);
+        drinkColumn.innerHTML = `<p class="loading-message">Error al cargar.</p>`;
+        eatColumn.innerHTML = `<p class="loading-message">Error al cargar.</p>`;
+    }
+}
+
+function renderMenu(dataToRender) {
+    drinkColumn.innerHTML = '<h2 class="column-title">DRINK ME 🥤</h2>';
+    eatColumn.innerHTML = '<h2 class="column-title">EAT ME 🍔</h2>';
     
-    dataToRender.forEach(item => {
+    if (!dataToRender || dataToRender.length === 0) {
+        drinkColumn.innerHTML += '<p class="loading-message">No hay ítems en esta sección.</p>';
+        eatColumn.innerHTML += '<p class="loading-message">No hay ítems en esta sección.</p>';
+        return;
+    }
+
+    const drinkData = dataToRender.filter(item => DRINK_ME_CATEGORIES.has(item.categoria));
+    const eatData = dataToRender.filter(item => EAT_ME_CATEGORIES.has(item.categoria));
+
+    renderColumn(drinkData, drinkColumn);
+    renderColumn(eatData, eatColumn);
+    
+    addAccordionFunctionality();
+}
+
+function renderColumn(data, columnElement) {
+    const renderedCategories = new Set();
+    data.forEach(item => {
         if (!renderedCategories.has(item.categoria)) {
             const categoryDiv = document.createElement('div');
             categoryDiv.classList.add('category');
@@ -71,11 +85,13 @@ function renderMenu(dataToRender) {
             subcategoriesContainer.classList.add('subcategories-container');
             categoryDiv.appendChild(subcategoriesContainer);
 
-            menuContainer.appendChild(categoryDiv);
+            columnElement.appendChild(categoryDiv);
             renderedCategories.add(item.categoria);
         }
 
-        const currentCategoryDiv = document.getElementById(`category-${item.categoria.replace(/\s/g, '-')}`);
+        const currentCategoryDiv = columnElement.querySelector(`#category-${item.categoria.replace(/\s/g, '-')}`);
+        if (!currentCategoryDiv) return;
+
         const subcategoriesContainer = currentCategoryDiv.querySelector('.subcategories-container');
         
         const subcategoryHeader = document.createElement('div');
@@ -103,8 +119,6 @@ function renderMenu(dataToRender) {
             productsContainer.appendChild(productCard);
         });
     });
-
-    addAccordionFunctionality();
 }
 
 function addAccordionFunctionality() {
@@ -128,8 +142,7 @@ function addAccordionFunctionality() {
 function filterMenu(searchTerm) {
     const lowerCaseSearchTerm = searchTerm.toLowerCase();
     
-    // Filtramos los datos de la sección activa, no los globales
-    const filteredData = currentFilteredData.map(item => {
+    const filteredData = menuDataGlobal.map(item => {
         const filteredProductos = item.productos.filter(producto =>
             producto.nombre.toLowerCase().includes(lowerCaseSearchTerm) ||
             producto.descripcion.toLowerCase().includes(lowerCaseSearchTerm)
@@ -144,7 +157,7 @@ function filterMenu(searchTerm) {
     }).filter(item => item !== null);
     
     renderMenu(filteredData);
-
+    
     if (searchTerm) {
         document.querySelectorAll('.category-header, .subcategory-header').forEach(header => {
             header.classList.add('active');
@@ -153,24 +166,8 @@ function filterMenu(searchTerm) {
     }
 }
 
-// Eventos de los botones principales
-drinkMeBtn.addEventListener('click', () => {
-    initialButtons.classList.add('hidden');
-    menuContent.classList.remove('hidden');
-    currentFilteredData = menuDataGlobal.filter(item => DRINK_ME_CATEGORIES.has(item.categoria));
-    renderMenu(currentFilteredData);
-});
-
-eatMeBtn.addEventListener('click', () => {
-    initialButtons.classList.add('hidden');
-    menuContent.classList.remove('hidden');
-    currentFilteredData = menuDataGlobal.filter(item => EAT_ME_CATEGORIES.has(item.categoria));
-    renderMenu(currentFilteredData);
-});
-
 searchInput.addEventListener('input', (e) => {
     filterMenu(e.target.value);
 });
 
-// Cargar los datos y preparar la UI
 document.addEventListener('DOMContentLoaded', fetchAndCacheMenu);
