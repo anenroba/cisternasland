@@ -31,10 +31,9 @@ async function fetchAndCacheMenu() {
     }
 }
 
-// Función para renderizar el menú completo
 function renderMenu(dataToRender) {
-    contentSectionsContainer.innerHTML = ''; // Limpiar el contenido anterior
-    categoryBarElement.innerHTML = ''; // Limpiar los botones de categoría
+    contentSectionsContainer.innerHTML = '';
+    categoryBarElement.innerHTML = '';
 
     if (!dataToRender || dataToRender.length === 0) {
         contentSectionsContainer.innerHTML = '<p class="loading-message text-center p-4">No hay ítems para mostrar.</p>';
@@ -56,7 +55,7 @@ function renderMenu(dataToRender) {
 
     // Renderizar los botones de categoría
     categoryOrder.forEach((categoryKey, index) => {
-        const categoryName = categoryKey.charAt(0).toUpperCase() + categoryKey.slice(1).replace('-', ' ');
+        const categoryName = formatText(categoryKey);
         const button = document.createElement('button');
         button.className = `category-button ${index === 0 ? 'active' : ''}`;
         button.textContent = categoryName;
@@ -66,7 +65,7 @@ function renderMenu(dataToRender) {
 
     // Renderizar las secciones y productos
     categoryOrder.forEach(categoryKey => {
-        const categoryName = categoryKey.charAt(0).toUpperCase() + categoryKey.slice(1).replace('-', ' ');
+        const categoryName = formatText(categoryKey);
         const section = document.createElement('section');
         section.id = `category-${categoryKey.replace(/\s/g, '-')}`;
         section.className = 'category-section';
@@ -79,23 +78,25 @@ function renderMenu(dataToRender) {
         const productListDiv = document.createElement('div');
         productListDiv.className = 'product-list';
         
-        for (const subcategory in groupedData[categoryKey]) {
-            // Si la subcategoría es diferente a la categoría, se muestra un título de subcategoría
-            if (subcategory !== categoryKey) {
+        for (const subcategoryKey in groupedData[categoryKey]) {
+            const subcategoryName = formatText(subcategoryKey);
+            
+            // Renderizar un título de subcategoría solo si es diferente a la categoría principal
+            if (subcategoryKey.toLowerCase() !== categoryKey.toLowerCase()) {
                 const subcategoryTitle = document.createElement('h3');
                 subcategoryTitle.className = 'text-lg font-semibold mt-4 mb-2';
-                subcategoryTitle.textContent = subcategory;
+                subcategoryTitle.textContent = subcategoryName;
                 productListDiv.appendChild(subcategoryTitle);
             }
 
-            const products = groupedData[categoryKey][subcategory];
+            const products = groupedData[categoryKey][subcategoryKey];
             products.forEach(product => {
                 const productCard = document.createElement('div');
                 productCard.className = 'product-card';
                 productCard.innerHTML = `
                     <div>
                         <h3 class="text-lg font-semibold">${product.nombre}</h3>
-                        <p class="text-sm mb-1">${product.descripcion}</p>
+                        ${product.descripcion ? `<p class="text-sm mb-1">${product.descripcion}</p>` : ''}
                     </div>
                     <p class="text-md font-bold ml-auto">$${new Intl.NumberFormat('es-CL').format(product.precio)}</p>
                 `;
@@ -109,6 +110,13 @@ function renderMenu(dataToRender) {
     addCategoryButtonListeners();
     adjustLayout();
 }
+
+function formatText(text) {
+    if (!text) return '';
+    const formatted = text.toLowerCase().replace(/_/g, ' ').replace(/-/g, ' ');
+    return formatted.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+}
+
 
 function addCategoryButtonListeners() {
     const categoryButtons = document.querySelectorAll('.category-button');
@@ -126,7 +134,7 @@ function addCategoryButtonListeners() {
                 const offset = headerHeight + categoryBarHeight;
                 
                 window.scrollTo({
-                    top: targetElement.offsetTop - offset + 1, // +1 para evitar saltos
+                    top: targetElement.offsetTop - offset + 1,
                     behavior: "smooth"
                 });
             }
@@ -145,42 +153,27 @@ window.addEventListener('scroll', () => {
     const headerHeight = headerElement.offsetHeight;
     const categoryBarHeight = categoryBarElement.offsetHeight;
     
-    let currentActiveButton = null;
     let firstVisibleSection = null;
-    let closestDistance = Infinity;
-
-    const categoryButtons = document.querySelectorAll('.category-button');
     const sections = document.querySelectorAll('.category-section');
-    const scrollPosition = window.scrollY + headerHeight + categoryBarHeight + 50; // Ajuste para el offset
+    const scrollPosition = window.scrollY + headerHeight + categoryBarHeight + 50;
     
     sections.forEach(section => {
         const sectionTop = section.offsetTop;
         const sectionBottom = sectionTop + section.offsetHeight;
         
-        // Determina qué sección está visible en la parte superior del viewport
         if (scrollPosition >= sectionTop && scrollPosition < sectionBottom) {
             firstVisibleSection = section;
         }
-        
-        // Lógica de anclaje para el botón
-        const distance = Math.abs(scrollPosition - sectionTop);
-        if (distance < closestDistance) {
-            closestDistance = distance;
-            currentActiveButton = document.querySelector(`.category-button[data-category="${section.id.split('-')[1]}"]`);
-        }
     });
 
-    // Activar el botón correspondiente a la sección visible
+    const categoryButtons = document.querySelectorAll('.category-button');
+    categoryButtons.forEach(btn => btn.classList.remove('active'));
+
     if (firstVisibleSection) {
-        categoryButtons.forEach(btn => btn.classList.remove('active'));
         const button = document.querySelector(`.category-button[data-category="${firstVisibleSection.id.split('-')[1]}"]`);
         if (button) {
             button.classList.add('active');
         }
-    } else if (currentActiveButton) {
-        // Si ninguna sección está visible, usa la que está más cerca
-        categoryButtons.forEach(btn => btn.classList.remove('active'));
-        currentActiveButton.classList.add('active');
     }
 });
 
