@@ -15,7 +15,6 @@ const mainTabsContainer = document.querySelector('.main-tabs-container');
 
 let menuDataGlobal = [];
 let activeMainTab = 'Food';
-let activeSubcategory = '';
 
 const DRINK_ME_CATEGORIES = ['Coctelería', 'Pisco', 'Whisky', 'Vinos & Espumantes', 'Gin', 'Vodka', 'Ron', 'Tequila', 'Cervezas', 'Licores', 'Sin alcohol', 'Botellas', 'Degustaciones'];
 const EAT_ME_CATEGORIES = ['Para comenzar', 'Pizzas', 'Para compartir', 'Sushi Especial', 'Dulce Final'];
@@ -58,26 +57,23 @@ function switchMainTab(tab) {
     foodTabBtn.classList.toggle('active', tab === 'Food');
     drinkTabBtn.classList.toggle('active', tab === 'Drinks');
     
-    renderSubcategoryMenu();
-}
-
-function renderSubcategoryMenu() {
     const categoriesToShow = activeMainTab === 'Food' ? EAT_ME_CATEGORIES : DRINK_ME_CATEGORIES;
     const availableCategories = menuDataGlobal.filter(item => categoriesToShow.includes(item.categoria));
     
-    subcategoryBarElement.innerHTML = '';
-    const uniqueSubcategories = [...new Set(availableCategories.map(item => item.subcategoria))];
+    renderSubcategoryMenu(availableCategories);
+    renderProducts(availableCategories);
+    updateScrollSync();
+}
 
-    if (uniqueSubcategories.length > 0) {
-        activeSubcategory = uniqueSubcategories[0];
-    } else {
-        activeSubcategory = '';
-    }
+function renderSubcategoryMenu(dataToRender) {
+    subcategoryBarElement.innerHTML = '';
+    
+    const uniqueSubcategories = [...new Set(dataToRender.map(item => item.subcategoria))];
 
     uniqueSubcategories.forEach((subcat, index) => {
         const link = document.createElement('a');
         link.href = `#section-${subcat.replace(/\s/g, '-')}`;
-        link.className = `subcategory-button ${subcat === activeSubcategory ? 'active' : ''}`;
+        link.className = `subcategory-button ${subcat === uniqueSubcategories[0] ? 'active' : ''}`;
         link.textContent = subcat;
         link.dataset.subcategory = subcat;
         
@@ -94,13 +90,9 @@ function renderSubcategoryMenu() {
         
         subcategoryBarElement.appendChild(link);
     });
-    
-    renderProducts(availableCategories);
-    updateScrollSync();
 }
 
 function setActiveSubcategory(subcat) {
-    activeSubcategory = subcat;
     document.querySelectorAll('.subcategory-button').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.subcategory === subcat);
     });
@@ -193,33 +185,43 @@ function setupEventListeners() {
 
     searchToggle.addEventListener('click', () => {
         searchBar.classList.toggle('visible');
+        if (searchBar.classList.contains('visible')) {
+            searchInput.focus();
+        }
     });
 
     searchCloseBtn.addEventListener('click', () => {
         searchBar.classList.remove('visible');
         searchInput.value = '';
-        searchMenu('');
+        const categoriesToShow = activeMainTab === 'Food' ? EAT_ME_CATEGORIES : DRINK_ME_CATEGORIES;
+        const availableCategories = menuDataGlobal.filter(item => categoriesToShow.includes(item.categoria));
+        renderSubcategoryMenu(availableCategories);
+        renderProducts(availableCategories);
     });
 
     searchInput.addEventListener('input', (e) => {
         const searchTerm = e.target.value.toLowerCase();
-        searchMenu(searchTerm);
+        
+        const categoriesToShow = activeMainTab === 'Food' ? EAT_ME_CATEGORIES : DRINK_ME_CATEGORIES;
+        const availableCategories = menuDataGlobal.filter(item => categoriesToShow.includes(item.categoria));
+
+        const filteredData = availableCategories.map(item => {
+            const filteredProducts = item.productos.filter(producto => 
+                producto.nombre.toLowerCase().includes(searchTerm) ||
+                (producto.descripcion && producto.descripcion.toLowerCase().includes(searchTerm))
+            );
+            return { ...item, productos: filteredProducts };
+        }).filter(item => item.productos.length > 0);
+
+        // Si hay un término de búsqueda, ocultar la barra de subcategorías
+        if (searchTerm.length > 0) {
+            subcategoryBarElement.style.display = 'none';
+        } else {
+            subcategoryBarElement.style.display = 'flex';
+        }
+
+        renderProducts(filteredData);
     });
-}
-
-function searchMenu(searchTerm) {
-    const categoriesToShow = activeMainTab === 'Food' ? EAT_ME_CATEGORIES : DRINK_ME_CATEGORIES;
-    const availableCategories = menuDataGlobal.filter(item => categoriesToShow.includes(item.categoria));
-
-    const filteredData = availableCategories.map(item => {
-        const filteredProducts = item.productos.filter(producto => 
-            producto.nombre.toLowerCase().includes(searchTerm) ||
-            (producto.descripcion && producto.descripcion.toLowerCase().includes(searchTerm))
-        );
-        return { ...item, productos: filteredProducts };
-    }).filter(item => item.productos.length > 0);
-
-    renderProducts(filteredData);
 }
 
 function toggleTheme() {
