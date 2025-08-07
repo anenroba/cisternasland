@@ -1,6 +1,5 @@
 /* Definición de variables CSS para la paleta de colores cobrizos */
 :root {
-    /* Colores claros (Light Mode) */
     --color-bg-light: #F8F5EE;
     --color-header-footer-light: #EAE0D4;
     --color-text-dark: #3A2B20;
@@ -12,7 +11,7 @@
     --color-border-light: #DDD0C0;
     --color-icon-light: #8A7B6F;
     --color-bg-gray: #f0f2f5;
-    --color-placeholder-bg: #e0e0e0; /* Nuevo color para el placeholder */
+    --color-placeholder-bg: #e0e0e0;
 }
 
 /* Colores oscuros (Dark Mode) */
@@ -28,7 +27,7 @@
     --color-border-light: #4F443A;
     --color-icon-light: #D4C4B3;
     --color-bg-gray: #1b1b1b;
-    --color-placeholder-bg: #4f4f4f; /* Nuevo color para el placeholder en modo oscuro */
+    --color-placeholder-bg: #4f4f4f;
 }
 
 body {
@@ -121,6 +120,7 @@ body {
     transition: all 0.2s ease-in-out;
     flex-shrink: 0;
     height: 40px;
+    text-decoration: none; /* Para los enlaces */
 }
 .subcategory-button.active {
     background-color: var(--color-button-active-bg-light);
@@ -160,7 +160,7 @@ body {
     border-radius: 0.5rem;
     object-fit: cover;
     margin-right: 1rem;
-    background-color: var(--color-placeholder-bg); /* Fondo del placeholder */
+    background-color: var(--color-placeholder-bg);
     position: relative;
     display: flex;
     justify-content: center;
