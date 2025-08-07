@@ -73,18 +73,18 @@ function renderSubcategoryMenu() {
         button.className = `subcategory-button ${subcat === activeSubcategory ? 'active' : ''}`;
         button.textContent = subcat;
         button.dataset.subcategory = subcat;
+        
+        // CORRECCIÓN: Lógica para manejar el scroll al hacer clic
         button.addEventListener('click', () => {
             setActiveSubcategory(subcat);
             const sectionId = `section-${subcat.replace(/\s/g, '-')}`;
             const section = document.getElementById(sectionId);
             if(section) {
-                const headerHeight = document.getElementById('header').offsetHeight;
-                const mainTabsHeight = document.getElementById('mainTabs').offsetHeight;
-                const subcategoryBarHeight = document.getElementById('subcategoryBar').offsetHeight;
-                const offset = headerHeight + mainTabsHeight + subcategoryBarHeight;
+                const offset = document.getElementById('header').offsetHeight + document.querySelector('.main-tabs-container').offsetHeight + subcategoryBarElement.offsetHeight;
                 window.scrollTo({ top: section.offsetTop - offset, behavior: 'smooth' });
             }
         });
+        
         subcategoryBarElement.appendChild(button);
         subcategoryElements[subcat] = button;
     });
@@ -128,7 +128,6 @@ function renderProducts(dataToRender) {
             const productCard = document.createElement('div');
             productCard.className = 'product-card';
             
-            // Reemplazar la imagen por un placeholder o la imagen real
             const imageHtml = producto.image_url 
                 ? `<img src="${producto.image_url}" alt="${producto.nombre}" class="product-image">`
                 : `<div class="product-image"><i class="fas fa-camera product-image-placeholder"></i></div>`;
