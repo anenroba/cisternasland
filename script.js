@@ -7,7 +7,11 @@ const drinkTabBtn = document.getElementById('drink-tab');
 const subcategoryBarElement = document.getElementById('subcategoryBar');
 const contentSectionsContainer = document.getElementById('contentSections');
 const headerElement = document.getElementById('header');
-const mainTabsContainer = document.getElementById('mainTabs');
+const mainTabsContainer = document.querySelector('.main-tabs-container');
+const mainMenu = document.getElementById('main-menu');
+const initialButtons = document.getElementById('initial-buttons');
+const drinkMeBtnInitial = document.getElementById('drink-me-btn-initial');
+const eatMeBtnInitial = document.getElementById('eat-me-btn-initial');
 
 let menuDataGlobal = [];
 let activeMainTab = 'Food';
@@ -76,16 +80,15 @@ function renderSubcategoryMenu() {
         link.textContent = subcat;
         link.dataset.subcategory = subcat;
         
-        // CORRECCIÓN: Usar el evento de scroll nativo y ajustar el offset
         link.addEventListener('click', (e) => {
             e.preventDefault();
             const sectionId = `section-${subcat.replace(/\s/g, '-')}`;
             const section = document.getElementById(sectionId);
             if(section) {
                 const headerHeight = headerElement.offsetHeight;
-                const mainTabsHeight = mainTabsContainer.offsetHeight;
+                const mainTabsHeight = mainTabsContainer ? mainTabsContainer.offsetHeight : 0;
                 const subcategoryBarWrapper = document.querySelector('.subcategory-bar-wrapper');
-                const offset = headerHeight + mainTabsHeight + subcategoryBarWrapper.offsetHeight;
+                const offset = headerHeight + mainTabsHeight + (subcategoryBarWrapper ? subcategoryBarWrapper.offsetHeight : 0);
                 window.scrollTo({ top: section.offsetTop - offset, behavior: 'smooth' });
                 setActiveSubcategory(subcat);
             }
@@ -133,7 +136,6 @@ function renderProducts(dataToRender) {
             const productCard = document.createElement('div');
             productCard.className = 'product-card';
             
-            // CORRECCIÓN: Lógica de placeholders dinámicos
             const placeholderColor = Math.abs(hashString(producto.nombre)) % 360;
             const imageUrl = producto.image_url ? producto.image_url : `https://dummyimage.com/80x80/2C2620/${placeholderColor.toString(16).padStart(2, '0')}.png&text=${encodeURIComponent(producto.nombre.split(' ')[0])}`;
             
@@ -150,46 +152,39 @@ function renderProducts(dataToRender) {
     });
 }
 
-// CORRECCIÓN: Función para sincronizar el scroll
 function addScrollSync() {
-    let lastActive = '';
+    let scrollTimeout;
     const headerHeight = headerElement.offsetHeight;
-    const mainTabsHeight = mainTabsContainer.offsetHeight;
+    const mainTabsHeight = mainTabsContainer ? mainTabsContainer.offsetHeight : 0;
     const subcategoryBarWrapper = document.querySelector('.subcategory-bar-wrapper');
-    const offset = headerHeight + mainTabsHeight + subcategoryBarWrapper.offsetHeight + 10;
+    const offset = headerHeight + mainTabsHeight + (subcategoryBarWrapper ? subcategoryBarWrapper.offsetHeight : 0) + 20;
 
     window.addEventListener('scroll', () => {
-        const sections = document.querySelectorAll('.category-section');
-        let currentSubcat = '';
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+            const scrollPosition = window.scrollY;
+            let currentSubcat = '';
+            
+            const sections = document.querySelectorAll('.category-section');
+            sections.forEach(section => {
+                const rect = section.getBoundingClientRect();
+                if (rect.top <= offset && rect.bottom > offset) {
+                    currentSubcat = section.id.replace('section-', '').replace(/-/g, ' ');
+                }
+            });
 
-        sections.forEach(section => {
-            const rect = section.getBoundingClientRect();
-            if (rect.top <= offset && rect.bottom > offset) {
-                currentSubcat = section.id.replace('section-', '').replace(/-/g, ' ');
+            if (currentSubcat && activeSubcategory !== currentSubcat) {
+                setActiveSubcategory(currentSubcat);
+                const buttonToScroll = document.querySelector(`.subcategory-button[data-subcategory="${currentSubcat}"]`);
+                if (buttonToScroll) {
+                    subcategoryBarElement.scrollTo({
+                        left: buttonToScroll.offsetLeft - subcategoryBarElement.offsetLeft,
+                        behavior: 'smooth'
+                    });
+                }
             }
-        });
-
-        if (currentSubcat && lastActive !== currentSubcat) {
-            setActiveSubcategory(currentSubcat);
-            const buttonToScroll = document.querySelector(`.subcategory-button[data-subcategory="${currentSubcat}"]`);
-            if (buttonToScroll) {
-                subcategoryBarElement.scrollTo({
-                    left: buttonToScroll.offsetLeft - subcategoryBarElement.offsetLeft,
-                    behavior: 'smooth'
-                });
-            }
-            lastActive = currentSubcat;
-        }
+        }, 100);
     });
-}
-
-// Función auxiliar para generar un hash simple para el placeholder
-function hashString(str) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-        hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    return hash;
 }
 
 function toggleTheme() {
@@ -210,8 +205,42 @@ function updateThemeIcon(theme) {
     }
 }
 
-foodTabBtn.addEventListener('click', () => switchMainTab('Food'));
-drinkTabBtn.addEventListener('click', () => switchMainTab('Drinks'));
-themeToggle.addEventListener('click', toggleTheme);
+// Lógica para los botones iniciales (index.html)
+document.addEventListener('DOMContentLoaded', () => {
+    fetchAndCacheMenu();
 
-document.addEventListener('DOMContentLoaded', fetchAndCacheMenu);
+    const initialButtonsContainer = document.getElementById('initial-buttons');
+    const mainMenu = document.getElementById('main-menu');
+    const drinkMeBtnInitial = document.getElementById('drink-me-btn-initial');
+    const eatMeBtnInitial = document.getElementById('eat-me-btn-initial');
+
+    if(drinkMeBtnInitial) {
+        drinkMeBtnInitial.addEventListener('click', () => {
+            if(initialButtonsContainer) initialButtonsContainer.classList.add('hidden');
+            if(mainMenu) mainMenu.classList.remove('hidden');
+            switchMainTab('Drinks');
+        });
+    }
+
+    if(eatMeBtnInitial) {
+        eatMeBtnInitial.addEventListener('click', () => {
+            if(initialButtonsContainer) initialButtonsContainer.classList.add('hidden');
+            if(mainMenu) mainMenu.classList.remove('hidden');
+            switchMainTab('Food');
+        });
+    }
+
+    // Lógica para los botones de las pestañas principales
+    foodTabBtn.addEventListener('click', () => switchMainTab('Food'));
+    drinkTabBtn.addEventListener('click', () => switchMainTab('Drinks'));
+    themeToggle.addEventListener('click', toggleTheme);
+});
+
+// Función auxiliar para generar un hash simple para el placeholder
+function hashString(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return hash;
+}
