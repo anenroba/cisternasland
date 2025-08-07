@@ -1,18 +1,38 @@
 const menuContainer = document.getElementById('menu-container');
 const searchInput = document.getElementById('search-input');
-const API_URL = 'https://api-swa.onrender.com/api/carta'; // URL de la API actualizada
+const API_URL = 'https://api-swa.onrender.com/api/carta';
+const LOCAL_STORAGE_KEY = 'cisternasMenuData';
 
 let menuDataGlobal = []; // Almacenará los datos originales de la carta
 
 // Función para obtener los datos de la carta
-async function fetchMenu() {
+async function fetchAndCacheMenu() {
     menuContainer.innerHTML = '<p class="loading-message">Cargando carta...</p>';
+
+    // 1. Intentar obtener los datos de localStorage
+    const cachedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (cachedData) {
+        console.log('Cargando carta desde localStorage...');
+        menuDataGlobal = JSON.parse(cachedData);
+        renderMenu(menuDataGlobal);
+        // Si hay datos en caché, no es necesario hacer una llamada API,
+        // pero podrías hacer una en segundo plano para actualizar si es necesario.
+        return;
+    }
+
+    // 2. Si no hay datos en localStorage, obtener de la API
+    console.log('Cargando carta desde la API...');
     try {
         const response = await fetch(API_URL);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        menuDataGlobal = await response.json();
+        const data = await response.json();
+        
+        // 3. Guardar los datos en localStorage
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+        menuDataGlobal = data;
+        
         renderMenu(menuDataGlobal);
     } catch (error) {
         console.error('Error al obtener la carta:', error);
@@ -29,7 +49,6 @@ function renderMenu(dataToRender) {
     }
 
     dataToRender.forEach(categoria => {
-        // Contenedor de la categoría
         const categoryHeader = document.createElement('div');
         categoryHeader.classList.add('category-header');
         categoryHeader.innerHTML = `
@@ -38,13 +57,11 @@ function renderMenu(dataToRender) {
         `;
         menuContainer.appendChild(categoryHeader);
 
-        // Contenedor de subcategorías (oculto por defecto)
         const subcategoriesContainer = document.createElement('div');
         subcategoriesContainer.classList.add('subcategories-container');
         menuContainer.appendChild(subcategoriesContainer);
 
         categoria.productos.forEach(subcategoria => {
-            // Contenedor de la subcategoría
             const subcategoryHeader = document.createElement('div');
             subcategoryHeader.classList.add('subcategory-header');
             subcategoryHeader.innerHTML = `
@@ -53,7 +70,6 @@ function renderMenu(dataToRender) {
             `;
             subcategoriesContainer.appendChild(subcategoryHeader);
 
-            // Contenedor de productos (oculto por defecto)
             const productsContainer = document.createElement('div');
             productsContainer.classList.add('products-container');
             subcategoriesContainer.appendChild(productsContainer);
@@ -73,11 +89,9 @@ function renderMenu(dataToRender) {
         });
     });
 
-    // Agregar la funcionalidad de acordeón
     addAccordionFunctionality();
 }
 
-// Función para agregar la funcionalidad de acordeón a las categorías y subcategorías
 function addAccordionFunctionality() {
     document.querySelectorAll('.category-header').forEach(header => {
         header.addEventListener('click', () => {
@@ -96,11 +110,9 @@ function addAccordionFunctionality() {
     });
 }
 
-// Función para filtrar los productos por el término de búsqueda
 function filterMenu(searchTerm) {
     const lowerCaseSearchTerm = searchTerm.toLowerCase();
 
-    // Filtra los datos globales
     const filteredData = menuDataGlobal.map(categoria => {
         const filteredSubcategorias = categoria.productos.map(subcategoria => {
             const filteredProductos = subcategoria.productos.filter(producto =>
@@ -114,7 +126,6 @@ function filterMenu(searchTerm) {
     }).filter(categoria => categoria.productos.length > 0);
 
     renderMenu(filteredData);
-    // Expandir las categorías y subcategorías si se está buscando
     if (searchTerm) {
         document.querySelectorAll('.category-header, .subcategory-header').forEach(header => {
             header.classList.add('active');
@@ -123,10 +134,8 @@ function filterMenu(searchTerm) {
     }
 }
 
-// Evento de escucha para la barra de búsqueda
 searchInput.addEventListener('input', (e) => {
     filterMenu(e.target.value);
 });
 
-// Iniciar la carga de la carta
-document.addEventListener('DOMContentLoaded', fetchMenu);
+document.addEventListener('DOMContentLoaded', fetchAndCacheMenu);
