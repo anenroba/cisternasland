@@ -12,6 +12,7 @@
     --color-border-light: #DDD0C0;
     --color-icon-light: #8A7B6F;
     --color-bg-gray: #f0f2f5;
+    --color-placeholder-bg: #e0e0e0; /* Nuevo color para el placeholder */
 }
 
 /* Colores oscuros (Dark Mode) */
@@ -27,6 +28,7 @@
     --color-border-light: #4F443A;
     --color-icon-light: #D4C4B3;
     --color-bg-gray: #1b1b1b;
+    --color-placeholder-bg: #4f4f4f; /* Nuevo color para el placeholder en modo oscuro */
 }
 
 body {
@@ -149,7 +151,7 @@ body {
     border-radius: 0.75rem;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    cursor: pointer; /* Añadido para dar feedback de que es clickeable */
+    cursor: pointer;
 }
 
 .product-image {
@@ -158,6 +160,16 @@ body {
     border-radius: 0.5rem;
     object-fit: cover;
     margin-right: 1rem;
+    background-color: var(--color-placeholder-bg); /* Fondo del placeholder */
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.product-image-placeholder {
+    font-size: 2rem;
+    color: var(--color-icon-light);
 }
 
 .product-details {

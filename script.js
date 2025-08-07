@@ -39,12 +39,10 @@ async function fetchAndCacheMenu() {
 }
 
 function initializeMenu() {
-    // Establecer el tema al cargar
     const savedTheme = localStorage.getItem('theme') || 'light';
     document.body.classList.toggle('dark', savedTheme === 'dark');
     updateThemeIcon(savedTheme);
 
-    // Inicializar la interfaz con la pestaña de comida activa
     switchMainTab('Food');
 }
 
@@ -77,7 +75,15 @@ function renderSubcategoryMenu() {
         button.dataset.subcategory = subcat;
         button.addEventListener('click', () => {
             setActiveSubcategory(subcat);
-            document.getElementById(`section-${subcat.replace(/\s/g, '-')}`).scrollIntoView({ behavior: 'smooth' });
+            const sectionId = `section-${subcat.replace(/\s/g, '-')}`;
+            const section = document.getElementById(sectionId);
+            if(section) {
+                const headerHeight = document.getElementById('header').offsetHeight;
+                const mainTabsHeight = document.getElementById('mainTabs').offsetHeight;
+                const subcategoryBarHeight = document.getElementById('subcategoryBar').offsetHeight;
+                const offset = headerHeight + mainTabsHeight + subcategoryBarHeight;
+                window.scrollTo({ top: section.offsetTop - offset, behavior: 'smooth' });
+            }
         });
         subcategoryBarElement.appendChild(button);
         subcategoryElements[subcat] = button;
@@ -121,8 +127,14 @@ function renderProducts(dataToRender) {
         item.productos.forEach(producto => {
             const productCard = document.createElement('div');
             productCard.className = 'product-card';
+            
+            // Reemplazar la imagen por un placeholder o la imagen real
+            const imageHtml = producto.image_url 
+                ? `<img src="${producto.image_url}" alt="${producto.nombre}" class="product-image">`
+                : `<div class="product-image"><i class="fas fa-camera product-image-placeholder"></i></div>`;
+
             productCard.innerHTML = `
-                <img src="https://via.placeholder.com/80" alt="${producto.nombre}" class="product-image">
+                ${imageHtml}
                 <div class="product-details">
                     <h3>${producto.nombre}</h3>
                     <p>${producto.descripcion || ''}</p>
@@ -186,7 +198,6 @@ function updateThemeIcon(theme) {
     }
 }
 
-// Listeners
 foodTabBtn.addEventListener('click', () => switchMainTab('Food'));
 drinkTabBtn.addEventListener('click', () => switchMainTab('Drinks'));
 themeToggle.addEventListener('click', toggleTheme);
