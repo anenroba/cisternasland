@@ -26,6 +26,73 @@ p {
     color: #bbb;
 }
 
+/* Contenedor de botones iniciales */
+.button-container.initial-state {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 80vh;
+    gap: 2rem;
+}
+
+.main-btn {
+    width: 80%;
+    max-width: 300px;
+    padding: 2rem 1rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #fff;
+    background-color: #007BFF;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.main-btn:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+}
+
+/* Botones de navegación superior */
+.top-buttons-container {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1rem;
+    max-width: 800px;
+    margin: 1rem auto;
+    padding: 0 1rem;
+}
+
+.top-btn {
+    flex: 1;
+    padding: 1rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #fff;
+    background-color: #ccc;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.top-btn.active {
+    background-color: #007BFF;
+}
+
+/* Ocultar/Mostrar elementos */
+.hidden {
+    display: none;
+}
+
+.hidden-column {
+    display: none;
+}
+
 /* Barra de búsqueda */
 .search-bar-container {
     display: flex;
@@ -50,29 +117,11 @@ p {
     color: #999;
 }
 
-/* Contenedor principal de la carta en dos columnas */
-.menu-columns-container {
-    display: flex;
-    gap: 1rem;
-    max-width: 1200px;
-    margin: 1rem auto;
+/* Contenedor principal de la carta */
+#menu-content {
+    max-width: 800px;
+    margin: 0 auto;
     padding: 0 1rem;
-}
-
-.menu-column {
-    flex: 1;
-    background-color: #fff;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    padding: 1rem;
-}
-
-.column-title {
-    font-size: 1.8rem;
-    text-align: center;
-    margin-top: 0;
-    margin-bottom: 1rem;
-    color: #007BFF;
 }
 
 /* Estilos para las categorías (Acordeón) */

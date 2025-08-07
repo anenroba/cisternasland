@@ -1,12 +1,20 @@
+const initialButtonsContainer = document.getElementById('initial-buttons');
+const mainMenu = document.getElementById('main-menu');
+const drinkMeBtnInitial = document.getElementById('drink-me-btn-initial');
+const eatMeBtnInitial = document.getElementById('eat-me-btn-initial');
+const drinkMeBtnTop = document.getElementById('drink-me-btn-top');
+const eatMeBtnTop = document.getElementById('eat-me-btn-top');
+const searchInput = document.getElementById('search-input');
 const drinkColumn = document.getElementById('drink-column');
 const eatColumn = document.getElementById('eat-column');
-const searchInput = document.getElementById('search-input');
 const API_URL = 'https://api-swa.onrender.com/api/carta';
 const LOCAL_STORAGE_KEY = 'cisternasMenuData';
 
 let menuDataGlobal = [];
+let currentFilteredData = [];
+let activeSection = '';
 
-const DRINK_ME_CATEGORIES = new Set(['Coctelería', 'Sours', 'Mojitos', 'Spritz', 'Tequila', 'Clásicos de Siempre', 'Piscos', 'Whisky', 'Vinos & Espumantes', 'Gin']);
+const DRINK_ME_CATEGORIES = new Set(['Bebida', 'Coctelería', 'Sours', 'Mojitos', 'Spritz', 'Tequila', 'Clásicos de Siempre', 'Piscos', 'Whisky', 'Vinos & Espumantes', 'Gin']);
 const EAT_ME_CATEGORIES = new Set(['Comida', 'Tablas', 'Sushi', 'Dulce Final', 'Piqueos', 'Hamburguesas', 'Pastas']);
 
 async function fetchAndCacheMenu() {
@@ -14,7 +22,6 @@ async function fetchAndCacheMenu() {
     if (cachedData) {
         console.log('Cargando carta desde localStorage...');
         menuDataGlobal = JSON.parse(cachedData);
-        renderMenu(menuDataGlobal);
     } else {
         console.log('Cargando carta desde la API...');
         try {
@@ -25,36 +32,45 @@ async function fetchAndCacheMenu() {
             const data = await response.json();
             localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
             menuDataGlobal = data;
-            renderMenu(menuDataGlobal);
         } catch (error) {
             console.error('Error al obtener la carta:', error);
-            drinkColumn.innerHTML = `<p class="loading-message">Error al cargar las bebidas.</p>`;
-            eatColumn.innerHTML = `<p class="loading-message">Error al cargar las comidas.</p>`;
+            // Manejar error en la interfaz inicial si no se pueden obtener datos
+            initialButtonsContainer.innerHTML = '<p class="loading-message">Error al cargar la carta. Por favor, inténtelo de nuevo más tarde.</p>';
         }
     }
 }
 
-function renderMenu(dataToRender) {
-    drinkColumn.innerHTML = '<h2 class="column-title">DRINK ME 🥤</h2>';
-    eatColumn.innerHTML = '<h2 class="column-title">EAT ME 🍔</h2>';
+function showSection(section) {
+    if (section === 'drink') {
+        currentFilteredData = menuDataGlobal.filter(item => DRINK_ME_CATEGORIES.has(item.categoria));
+        drinkColumn.classList.remove('hidden-column');
+        eatColumn.classList.add('hidden-column');
+        drinkMeBtnTop.classList.add('active');
+        eatMeBtnTop.classList.remove('active');
+        activeSection = 'drink';
+    } else if (section === 'eat') {
+        currentFilteredData = menuDataGlobal.filter(item => EAT_ME_CATEGORIES.has(item.categoria));
+        eatColumn.classList.remove('hidden-column');
+        drinkColumn.classList.add('hidden-column');
+        eatMeBtnTop.classList.add('active');
+        drinkMeBtnTop.classList.remove('active');
+        activeSection = 'eat';
+    }
+    renderSection(currentFilteredData, activeSection);
+}
+
+function renderSection(dataToRender, section) {
+    const columnElement = section === 'drink' ? drinkColumn : eatColumn;
     
+    // Limpiar el contenido existente y mostrar un mensaje de carga inicial si es necesario
+    columnElement.innerHTML = '';
     if (!dataToRender || dataToRender.length === 0) {
-        drinkColumn.innerHTML += '<p class="loading-message">No hay ítems en esta sección.</p>';
-        eatColumn.innerHTML += '<p class="loading-message">No hay ítems en esta sección.</p>';
+        columnElement.innerHTML = `<p class="loading-message">No hay ítems en esta sección.</p>`;
         return;
     }
 
-    const drinkData = dataToRender.filter(item => DRINK_ME_CATEGORIES.has(item.categoria));
-    const eatData = dataToRender.filter(item => EAT_ME_CATEGORIES.has(item.categoria));
-    
-    renderColumn(drinkData, drinkColumn);
-    renderColumn(eatData, eatColumn);
-    addAccordionFunctionality();
-}
-
-function renderColumn(data, columnElement) {
     const groupedData = {};
-    data.forEach(item => {
+    dataToRender.forEach(item => {
         if (!groupedData[item.categoria]) {
             groupedData[item.categoria] = {};
         }
@@ -108,6 +124,7 @@ function renderColumn(data, columnElement) {
         categoryDiv.appendChild(subcategoriesContainer);
         columnElement.appendChild(categoryDiv);
     }
+    addAccordionFunctionality();
 }
 
 function addAccordionFunctionality() {
@@ -131,19 +148,24 @@ function addAccordionFunctionality() {
 function filterMenu(searchTerm) {
     const lowerCaseSearchTerm = searchTerm.toLowerCase();
     
-    const filteredData = menuDataGlobal.map(item => {
-        const filteredProductos = item.productos.filter(producto =>
+    const filteredData = menuDataGlobal.filter(item => {
+        const itemMatches = item.productos.some(producto =>
             producto.nombre.toLowerCase().includes(lowerCaseSearchTerm) ||
             (producto.descripcion && producto.descripcion.toLowerCase().includes(lowerCaseSearchTerm))
         );
-        if (filteredProductos.length > 0) {
-            return { ...item, productos: filteredProductos };
-        }
-        return null;
-    }).filter(item => item !== null);
+        const categoryMatches = item.categoria.toLowerCase().includes(lowerCaseSearchTerm);
+        const subcategoryMatches = item.subcategoria.toLowerCase().includes(lowerCaseSearchTerm);
+        return itemMatches || categoryMatches || subcategoryMatches;
+    });
 
-    renderMenu(filteredData);
-    
+    if (activeSection === 'drink') {
+        const filteredDrinkData = filteredData.filter(item => DRINK_ME_CATEGORIES.has(item.categoria));
+        renderSection(filteredDrinkData, 'drink');
+    } else if (activeSection === 'eat') {
+        const filteredEatData = filteredData.filter(item => EAT_ME_CATEGORIES.has(item.categoria));
+        renderSection(filteredEatData, 'eat');
+    }
+
     if (searchTerm) {
         document.querySelectorAll('.category-header, .subcategory-header').forEach(header => {
             header.classList.add('active');
@@ -154,6 +176,22 @@ function filterMenu(searchTerm) {
         });
     }
 }
+
+// Eventos de los botones
+drinkMeBtnInitial.addEventListener('click', () => {
+    initialButtonsContainer.classList.add('hidden');
+    mainMenu.classList.remove('hidden');
+    showSection('drink');
+});
+
+eatMeBtnInitial.addEventListener('click', () => {
+    initialButtonsContainer.classList.add('hidden');
+    mainMenu.classList.remove('hidden');
+    showSection('eat');
+});
+
+drinkMeBtnTop.addEventListener('click', () => showSection('drink'));
+eatMeBtnTop.addEventListener('click', () => showSection('eat'));
 
 searchInput.addEventListener('input', (e) => {
     filterMenu(e.target.value);

@@ -14,20 +14,27 @@
         <p>Tu sistema de pedidos en línea</p>
     </header>
 
-    <div class="search-bar-container">
-        <input type="text" id="search-input" placeholder="Buscar en la carta...">
-        <i class="fas fa-search"></i>
+    <div id="initial-buttons" class="button-container initial-state">
+        <button id="drink-me-btn-initial" class="main-btn">DRINK ME 🥤</button>
+        <button id="eat-me-btn-initial" class="main-btn">EAT ME 🍔</button>
     </div>
 
-    <div id="menu-content" class="menu-columns-container">
-        <div id="drink-column" class="menu-column">
-            <h2 class="column-title">DRINK ME 🥤</h2>
-            <p class="loading-message">Cargando bebidas...</p>
+    <div id="main-menu" class="hidden">
+        <div class="top-buttons-container">
+            <button id="drink-me-btn-top" class="top-btn active">DRINK ME 🥤</button>
+            <button id="eat-me-btn-top" class="top-btn">EAT ME 🍔</button>
         </div>
 
-        <div id="eat-column" class="menu-column">
-            <h2 class="column-title">EAT ME 🍔</h2>
-            <p class="loading-message">Cargando comidas...</p>
+        <div class="search-bar-container">
+            <input type="text" id="search-input" placeholder="Buscar en la carta...">
+            <i class="fas fa-search"></i>
+        </div>
+
+        <div id="menu-content" class="menu-columns-container">
+            <div id="drink-column" class="menu-column">
+                </div>
+            <div id="eat-column" class="menu-column hidden-column">
+                </div>
         </div>
     </div>
 
