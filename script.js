@@ -5,22 +5,18 @@ const LOCAL_STORAGE_KEY = 'cisternasMenuData';
 
 let menuDataGlobal = []; // Almacenará los datos originales de la carta
 
-// Función para obtener los datos de la carta
+// Función para obtener los datos de la carta, usando localStorage
 async function fetchAndCacheMenu() {
     menuContainer.innerHTML = '<p class="loading-message">Cargando carta...</p>';
 
-    // 1. Intentar obtener los datos de localStorage
     const cachedData = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (cachedData) {
         console.log('Cargando carta desde localStorage...');
         menuDataGlobal = JSON.parse(cachedData);
         renderMenu(menuDataGlobal);
-        // Si hay datos en caché, no es necesario hacer una llamada API,
-        // pero podrías hacer una en segundo plano para actualizar si es necesario.
         return;
     }
 
-    // 2. Si no hay datos en localStorage, obtener de la API
     console.log('Cargando carta desde la API...');
     try {
         const response = await fetch(API_URL);
@@ -29,7 +25,6 @@ async function fetchAndCacheMenu() {
         }
         const data = await response.json();
         
-        // 3. Guardar los datos en localStorage
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
         menuDataGlobal = data;
         
@@ -40,6 +35,21 @@ async function fetchAndCacheMenu() {
     }
 }
 
+// Función para agrupar los datos planos en una estructura jerárquica
+function groupMenuData(data) {
+    const grouped = {};
+    data.forEach(item => {
+        if (!grouped[item.categoria]) {
+            grouped[item.categoria] = {};
+        }
+        if (!grouped[item.categoria][item.subcategoria]) {
+            grouped[item.categoria][item.subcategoria] = [];
+        }
+        grouped[item.categoria][item.subcategoria].push(item);
+    });
+    return grouped;
+}
+
 // Función para renderizar la carta en el HTML
 function renderMenu(dataToRender) {
     menuContainer.innerHTML = '';
@@ -48,33 +58,36 @@ function renderMenu(dataToRender) {
         return;
     }
 
-    dataToRender.forEach(categoria => {
+    const groupedData = groupMenuData(dataToRender);
+
+    for (const categoria in groupedData) {
+        const categoryDiv = document.createElement('div');
+        categoryDiv.classList.add('category');
+
         const categoryHeader = document.createElement('div');
         categoryHeader.classList.add('category-header');
         categoryHeader.innerHTML = `
-            <h3>${categoria.categoria}</h3>
+            <h3>${categoria}</h3>
             <i class="fas fa-chevron-down"></i>
         `;
-        menuContainer.appendChild(categoryHeader);
+        categoryDiv.appendChild(categoryHeader);
 
         const subcategoriesContainer = document.createElement('div');
         subcategoriesContainer.classList.add('subcategories-container');
-        menuContainer.appendChild(subcategoriesContainer);
 
-        categoria.productos.forEach(subcategoria => {
+        for (const subcategoria in groupedData[categoria]) {
             const subcategoryHeader = document.createElement('div');
             subcategoryHeader.classList.add('subcategory-header');
             subcategoryHeader.innerHTML = `
-                <h4>${subcategoria.nombre}</h4>
+                <h4>${subcategoria}</h4>
                 <i class="fas fa-chevron-down"></i>
             `;
             subcategoriesContainer.appendChild(subcategoryHeader);
 
             const productsContainer = document.createElement('div');
             productsContainer.classList.add('products-container');
-            subcategoriesContainer.appendChild(productsContainer);
 
-            subcategoria.productos.forEach(producto => {
+            groupedData[categoria][subcategoria].forEach(producto => {
                 const productCard = document.createElement('div');
                 productCard.classList.add('product-card');
                 productCard.innerHTML = `
@@ -86,9 +99,11 @@ function renderMenu(dataToRender) {
                 `;
                 productsContainer.appendChild(productCard);
             });
-        });
-    });
-
+            subcategoriesContainer.appendChild(productsContainer);
+        }
+        categoryDiv.appendChild(subcategoriesContainer);
+        menuContainer.appendChild(categoryDiv);
+    }
     addAccordionFunctionality();
 }
 
@@ -113,18 +128,12 @@ function addAccordionFunctionality() {
 function filterMenu(searchTerm) {
     const lowerCaseSearchTerm = searchTerm.toLowerCase();
 
-    const filteredData = menuDataGlobal.map(categoria => {
-        const filteredSubcategorias = categoria.productos.map(subcategoria => {
-            const filteredProductos = subcategoria.productos.filter(producto =>
-                producto.nombre.toLowerCase().includes(lowerCaseSearchTerm) ||
-                producto.descripcion.toLowerCase().includes(lowerCaseSearchTerm)
-            );
-            return { ...subcategoria, productos: filteredProductos };
-        }).filter(subcategoria => subcategoria.productos.length > 0);
-
-        return { ...categoria, productos: filteredSubcategorias };
-    }).filter(categoria => categoria.productos.length > 0);
-
+    const filteredData = menuDataGlobal.filter(item =>
+        item.nombre.toLowerCase().includes(lowerCaseSearchTerm) ||
+        item.descripcion.toLowerCase().includes(lowerCaseSearchTerm) ||
+        item.categoria.toLowerCase().includes(lowerCaseSearchTerm) ||
+        item.subcategoria.toLowerCase().includes(lowerCaseSearchTerm)
+    );
     renderMenu(filteredData);
     if (searchTerm) {
         document.querySelectorAll('.category-header, .subcategory-header').forEach(header => {
