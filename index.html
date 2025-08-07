@@ -3,42 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carta - Cisternas</title>
+    <title>Cisternas 2039 - La Serena</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
-<body>
-
-    <header>
-        <h1>Cisternas</h1>
-        <p>Tu sistema de pedidos en línea</p>
-    </header>
-
-    <div id="initial-buttons" class="button-container initial-state">
-        <button id="drink-me-btn-initial" class="main-btn">DRINK ME 🥤</button>
-        <button id="eat-me-btn-initial" class="main-btn">EAT ME 🍔</button>
+<body class="light">
+    <div class="header" id="header">
+        <span class="font-semibold">Cisternas 2039 - La Serena</span>
     </div>
 
-    <div id="main-menu" class="hidden">
-        <div class="top-buttons-container">
-            <button id="drink-me-btn-top" class="top-btn active">DRINK ME 🥤</button>
-            <button id="eat-me-btn-top" class="top-btn">EAT ME 🍔</button>
+    <div class="category-bar" id="categoryBar">
         </div>
 
-        <div class="search-bar-container">
-            <input type="text" id="search-input" placeholder="Buscar en la carta...">
-            <i class="fas fa-search"></i>
-        </div>
-
-        <div id="menu-content" class="menu-columns-container">
-            <div id="drink-column" class="menu-column">
-                </div>
-            <div id="eat-column" class="menu-column hidden-column">
-                </div>
+    <div class="container" id="mainContainer">
+        <div class="content-sections" id="contentSections">
+            <p class="loading-message text-center p-4">Cargando carta...</p>
         </div>
     </div>
 
     <script src="script.js"></script>
-
 </body>
 </html>
