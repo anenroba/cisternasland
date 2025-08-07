@@ -1,20 +1,27 @@
 const API_URL = 'https://api-swa.onrender.com/api/carta';
 const LOCAL_STORAGE_KEY = 'cisternasMenuData';
 
-let menuDataGlobal = [];
-const categoryBarElement = document.getElementById('categoryBar');
+const themeToggle = document.getElementById('theme-toggle');
+const foodTabBtn = document.getElementById('food-tab');
+const drinkTabBtn = document.getElementById('drink-tab');
+const subcategoryBarElement = document.getElementById('subcategoryBar');
 const contentSectionsContainer = document.getElementById('contentSections');
-const headerElement = document.getElementById('header');
-const mainContainer = document.getElementById('mainContainer');
+
+let menuDataGlobal = [];
+let activeMainTab = 'Food';
+let activeSubcategory = '';
+
+const DRINK_ME_CATEGORIES = new Set(['Coctelería', 'Pisco', 'Whisky', 'Vinos & Espumantes', 'Gin', 'Vodka', 'Ron', 'Tequila', 'Cervezas', 'Licores', 'Sin alcohol', 'Botellas', 'Degustaciones']);
+const EAT_ME_CATEGORIES = new Set(['Para comenzar', 'Pizzas', 'Para compartir', 'Sushi Especial', 'Dulce Final']);
 
 async function fetchAndCacheMenu() {
+    contentSectionsContainer.innerHTML = '<p class="loading-message text-center p-4">Cargando carta...</p>';
+    
     const cachedData = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (cachedData) {
-        console.log('Cargando carta desde localStorage...');
         menuDataGlobal = JSON.parse(cachedData);
-        renderMenu(menuDataGlobal);
+        initializeMenu();
     } else {
-        console.log('Cargando carta desde la API...');
         try {
             const response = await fetch(API_URL);
             if (!response.ok) {
@@ -23,7 +30,7 @@ async function fetchAndCacheMenu() {
             const data = await response.json();
             localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
             menuDataGlobal = data;
-            renderMenu(menuDataGlobal);
+            initializeMenu();
         } catch (error) {
             console.error('Error al obtener la carta:', error);
             contentSectionsContainer.innerHTML = '<p class="loading-message text-center p-4 text-red-500">Error al cargar la carta. Por favor, inténtelo de nuevo más tarde.</p>';
@@ -31,155 +38,157 @@ async function fetchAndCacheMenu() {
     }
 }
 
-function renderMenu(dataToRender) {
-    contentSectionsContainer.innerHTML = '';
-    categoryBarElement.innerHTML = '';
+function initializeMenu() {
+    // Establecer el tema al cargar
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.body.classList.toggle('dark', savedTheme === 'dark');
+    updateThemeIcon(savedTheme);
 
-    if (!dataToRender || dataToRender.length === 0) {
-        contentSectionsContainer.innerHTML = '<p class="loading-message text-center p-4">No hay ítems para mostrar.</p>';
-        return;
+    // Inicializar la interfaz con la pestaña de comida activa
+    switchMainTab('Food');
+}
+
+function switchMainTab(tab) {
+    activeMainTab = tab;
+    foodTabBtn.classList.toggle('active', tab === 'Food');
+    drinkTabBtn.classList.toggle('active', tab === 'Drinks');
+    
+    renderSubcategoryMenu();
+}
+
+function renderSubcategoryMenu() {
+    subcategoryBarElement.innerHTML = '';
+    const categoriesToShow = activeMainTab === 'Food' ? EAT_ME_CATEGORIES : DRINK_ME_CATEGORIES;
+    const availableCategories = menuDataGlobal.filter(item => categoriesToShow.has(item.categoria));
+    
+    const uniqueSubcategories = [...new Set(availableCategories.map(item => item.subcategoria))];
+
+    if (uniqueSubcategories.length > 0) {
+        activeSubcategory = activeSubcategory || uniqueSubcategories[0];
+    } else {
+        activeSubcategory = '';
     }
 
-    const groupedData = {};
-    dataToRender.forEach(item => {
-        if (!groupedData[item.categoria]) {
-            groupedData[item.categoria] = {};
-        }
-        if (!groupedData[item.categoria][item.subcategoria]) {
-            groupedData[item.categoria][item.subcategoria] = [];
-        }
-        groupedData[item.categoria][item.subcategoria].push(...item.productos);
-    });
-
-    const categoryOrder = Object.keys(groupedData).sort();
-
-    // Renderizar los botones de categoría
-    categoryOrder.forEach((categoryKey, index) => {
-        const categoryName = formatText(categoryKey);
+    const subcategoryElements = {};
+    uniqueSubcategories.forEach((subcat, index) => {
         const button = document.createElement('button');
-        button.className = `category-button ${index === 0 ? 'active' : ''}`;
-        button.textContent = categoryName;
-        button.dataset.category = categoryKey.replace(/\s/g, '-');
-        categoryBarElement.appendChild(button);
-    });
-
-    // Renderizar las secciones y productos
-    categoryOrder.forEach(categoryKey => {
-        const categoryName = formatText(categoryKey);
-        const section = document.createElement('section');
-        section.id = `category-${categoryKey.replace(/\s/g, '-')}`;
-        section.className = 'category-section';
-
-        const title = document.createElement('h2');
-        title.className = 'text-2xl font-bold mb-4';
-        title.textContent = categoryName;
-        section.appendChild(title);
-
-        const productListDiv = document.createElement('div');
-        productListDiv.className = 'product-list';
-        
-        for (const subcategoryKey in groupedData[categoryKey]) {
-            const subcategoryName = formatText(subcategoryKey);
-            
-            // Renderizar un título de subcategoría solo si es diferente a la categoría principal
-            if (subcategoryKey.toLowerCase() !== categoryKey.toLowerCase()) {
-                const subcategoryTitle = document.createElement('h3');
-                subcategoryTitle.className = 'text-lg font-semibold mt-4 mb-2';
-                subcategoryTitle.textContent = subcategoryName;
-                productListDiv.appendChild(subcategoryTitle);
-            }
-
-            const products = groupedData[categoryKey][subcategoryKey];
-            products.forEach(product => {
-                const productCard = document.createElement('div');
-                productCard.className = 'product-card';
-                productCard.innerHTML = `
-                    <div>
-                        <h3 class="text-lg font-semibold">${product.nombre}</h3>
-                        ${product.descripcion ? `<p class="text-sm mb-1">${product.descripcion}</p>` : ''}
-                    </div>
-                    <p class="text-md font-bold ml-auto">$${new Intl.NumberFormat('es-CL').format(product.precio)}</p>
-                `;
-                productListDiv.appendChild(productCard);
-            });
-        }
-        section.appendChild(productListDiv);
-        contentSectionsContainer.appendChild(section);
-    });
-
-    addCategoryButtonListeners();
-    adjustLayout();
-}
-
-function formatText(text) {
-    if (!text) return '';
-    const formatted = text.toLowerCase().replace(/_/g, ' ').replace(/-/g, ' ');
-    return formatted.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-}
-
-
-function addCategoryButtonListeners() {
-    const categoryButtons = document.querySelectorAll('.category-button');
-    categoryButtons.forEach(button => {
+        button.className = `subcategory-button ${subcat === activeSubcategory ? 'active' : ''}`;
+        button.textContent = subcat;
+        button.dataset.subcategory = subcat;
         button.addEventListener('click', () => {
-            categoryButtons.forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
+            setActiveSubcategory(subcat);
+            document.getElementById(`section-${subcat.replace(/\s/g, '-')}`).scrollIntoView({ behavior: 'smooth' });
+        });
+        subcategoryBarElement.appendChild(button);
+        subcategoryElements[subcat] = button;
+    });
 
-            const targetId = `category-${button.dataset.category}`;
-            const targetElement = document.getElementById(targetId);
+    renderProducts(availableCategories);
+    addScrollSync(subcategoryElements);
+}
 
-            if (targetElement) {
-                const headerHeight = headerElement.offsetHeight;
-                const categoryBarHeight = categoryBarElement.offsetHeight;
-                const offset = headerHeight + categoryBarHeight;
-                
-                window.scrollTo({
-                    top: targetElement.offsetTop - offset + 1,
-                    behavior: "smooth"
-                });
-            }
+function setActiveSubcategory(subcat) {
+    activeSubcategory = subcat;
+    document.querySelectorAll('.subcategory-button').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.subcategory === subcat);
+    });
+}
+
+function renderProducts(dataToRender) {
+    contentSectionsContainer.innerHTML = '';
+    if (!dataToRender || dataToRender.length === 0) {
+        contentSectionsContainer.innerHTML = '<p class="loading-message">No se encontraron productos.</p>';
+        return;
+    }
+    
+    const renderedSubcategories = new Set();
+    dataToRender.forEach(item => {
+        const subcategoryKey = item.subcategoria.replace(/\s/g, '-');
+        if (!renderedSubcategories.has(subcategoryKey)) {
+            const section = document.createElement('section');
+            section.id = `section-${subcategoryKey}`;
+            section.className = 'category-section';
+
+            const title = document.createElement('h2');
+            title.className = 'text-2xl font-bold mb-4';
+            title.textContent = item.subcategoria;
+            section.appendChild(title);
+            contentSectionsContainer.appendChild(section);
+            renderedSubcategories.add(subcategoryKey);
+        }
+
+        const section = document.getElementById(`section-${subcategoryKey}`);
+        item.productos.forEach(producto => {
+            const productCard = document.createElement('div');
+            productCard.className = 'product-card';
+            productCard.innerHTML = `
+                <img src="https://via.placeholder.com/80" alt="${producto.nombre}" class="product-image">
+                <div class="product-details">
+                    <h3>${producto.nombre}</h3>
+                    <p>${producto.descripcion || ''}</p>
+                </div>
+                <div class="product-price">${new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(producto.precio)}</div>
+            `;
+            section.appendChild(productCard);
         });
     });
 }
 
-function adjustLayout() {
-    const headerHeight = headerElement.offsetHeight;
-    const categoryBarHeight = categoryBarElement.offsetHeight;
-    categoryBarElement.style.top = `${headerHeight}px`;
-    mainContainer.style.paddingTop = `${headerHeight + categoryBarHeight}px`;
+function addScrollSync(subcategoryButtons) {
+    let scrollTimeout;
+    const headerHeight = document.getElementById('header').offsetHeight;
+    const mainTabsHeight = document.getElementById('mainTabs').offsetHeight;
+    const subcategoryBarHeight = document.getElementById('subcategoryBar').offsetHeight;
+    const offset = headerHeight + mainTabsHeight + subcategoryBarHeight + 20;
+
+    window.addEventListener('scroll', () => {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+            const scrollPosition = window.scrollY;
+            let currentSubcat = '';
+            
+            const sections = document.querySelectorAll('.category-section');
+            sections.forEach(section => {
+                if (scrollPosition >= section.offsetTop - offset) {
+                    currentSubcat = section.id.replace('section-', '').replace(/-/g, ' ');
+                }
+            });
+
+            if (currentSubcat && activeSubcategory !== currentSubcat) {
+                setActiveSubcategory(currentSubcat);
+                const buttonToScroll = subcategoryButtons[currentSubcat];
+                if (buttonToScroll) {
+                    subcategoryBarElement.scrollTo({
+                        left: buttonToScroll.offsetLeft - subcategoryBarElement.offsetLeft,
+                        behavior: 'smooth'
+                    });
+                }
+            }
+        }, 100);
+    });
 }
 
-window.addEventListener('scroll', () => {
-    const headerHeight = headerElement.offsetHeight;
-    const categoryBarHeight = categoryBarElement.offsetHeight;
-    
-    let firstVisibleSection = null;
-    const sections = document.querySelectorAll('.category-section');
-    const scrollPosition = window.scrollY + headerHeight + categoryBarHeight + 50;
-    
-    sections.forEach(section => {
-        const sectionTop = section.offsetTop;
-        const sectionBottom = sectionTop + section.offsetHeight;
-        
-        if (scrollPosition >= sectionTop && scrollPosition < sectionBottom) {
-            firstVisibleSection = section;
-        }
-    });
+function toggleTheme() {
+    const isDark = document.body.classList.toggle('dark');
+    const theme = isDark ? 'dark' : 'light';
+    localStorage.setItem('theme', theme);
+    updateThemeIcon(theme);
+}
 
-    const categoryButtons = document.querySelectorAll('.category-button');
-    categoryButtons.forEach(btn => btn.classList.remove('active'));
-
-    if (firstVisibleSection) {
-        const button = document.querySelector(`.category-button[data-category="${firstVisibleSection.id.split('-')[1]}"]`);
-        if (button) {
-            button.classList.add('active');
-        }
+function updateThemeIcon(theme) {
+    const icon = themeToggle.querySelector('i');
+    if (theme === 'dark') {
+        icon.classList.remove('fa-sun');
+        icon.classList.add('fa-moon');
+    } else {
+        icon.classList.remove('fa-moon');
+        icon.classList.add('fa-sun');
     }
-});
+}
 
-window.addEventListener('load', () => {
-    fetchAndCacheMenu();
-    adjustLayout();
-});
+// Listeners
+foodTabBtn.addEventListener('click', () => switchMainTab('Food'));
+drinkTabBtn.addEventListener('click', () => switchMainTab('Drinks'));
+themeToggle.addEventListener('click', toggleTheme);
 
-window.addEventListener('resize', adjustLayout);
+document.addEventListener('DOMContentLoaded', fetchAndCacheMenu);
