@@ -2,6 +2,10 @@ const API_URL = 'https://api-swa.onrender.com/api/carta';
 const LOCAL_STORAGE_KEY = 'cisternasMenuData';
 
 const themeToggle = document.getElementById('theme-toggle');
+const searchToggle = document.getElementById('search-toggle');
+const searchBar = document.getElementById('search-bar');
+const searchCloseBtn = document.getElementById('search-close-btn');
+const searchInput = document.getElementById('search-input');
 const foodTabBtn = document.getElementById('food-tab');
 const drinkTabBtn = document.getElementById('drink-tab');
 const subcategoryBarElement = document.getElementById('subcategoryBar');
@@ -11,6 +15,7 @@ const mainTabsContainer = document.querySelector('.main-tabs-container');
 
 let menuDataGlobal = [];
 let activeMainTab = 'Food';
+let activeSubcategory = '';
 
 const DRINK_ME_CATEGORIES = ['Coctelería', 'Pisco', 'Whisky', 'Vinos & Espumantes', 'Gin', 'Vodka', 'Ron', 'Tequila', 'Cervezas', 'Licores', 'Sin alcohol', 'Botellas', 'Degustaciones'];
 const EAT_ME_CATEGORIES = ['Para comenzar', 'Pizzas', 'Para compartir', 'Sushi Especial', 'Dulce Final'];
@@ -45,6 +50,7 @@ function initializeMenu() {
     updateThemeIcon(savedTheme);
 
     switchMainTab('Food');
+    setupEventListeners();
 }
 
 function switchMainTab(tab) {
@@ -59,25 +65,16 @@ function renderSubcategoryMenu() {
     const categoriesToShow = activeMainTab === 'Food' ? EAT_ME_CATEGORIES : DRINK_ME_CATEGORIES;
     const availableCategories = menuDataGlobal.filter(item => categoriesToShow.includes(item.categoria));
     
-    // CORRECCIÓN: Renderizar la barra de subcategorías en el orden definido
     subcategoryBarElement.innerHTML = '';
-    const groupedData = {};
-    availableCategories.forEach(item => {
-        if (!groupedData[item.subcategoria]) {
-            groupedData[item.subcategoria] = [];
-        }
-        groupedData[item.subcategoria].push(...item.productos);
-    });
+    const uniqueSubcategories = [...new Set(availableCategories.map(item => item.subcategoria))];
 
-    const subcategoryOrder = categoriesToShow.filter(cat => Object.keys(groupedData).includes(cat));
-    
-    if (subcategoryOrder.length > 0) {
-        activeSubcategory = subcategoryOrder[0];
+    if (uniqueSubcategories.length > 0) {
+        activeSubcategory = uniqueSubcategories[0];
     } else {
         activeSubcategory = '';
     }
 
-    subcategoryOrder.forEach(subcat => {
+    uniqueSubcategories.forEach((subcat, index) => {
         const link = document.createElement('a');
         link.href = `#section-${subcat.replace(/\s/g, '-')}`;
         link.className = `subcategory-button ${subcat === activeSubcategory ? 'active' : ''}`;
@@ -193,6 +190,36 @@ function setupEventListeners() {
     foodTabBtn.addEventListener('click', () => switchMainTab('Food'));
     drinkTabBtn.addEventListener('click', () => switchMainTab('Drinks'));
     themeToggle.addEventListener('click', toggleTheme);
+
+    searchToggle.addEventListener('click', () => {
+        searchBar.classList.toggle('visible');
+    });
+
+    searchCloseBtn.addEventListener('click', () => {
+        searchBar.classList.remove('visible');
+        searchInput.value = '';
+        searchMenu('');
+    });
+
+    searchInput.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        searchMenu(searchTerm);
+    });
+}
+
+function searchMenu(searchTerm) {
+    const categoriesToShow = activeMainTab === 'Food' ? EAT_ME_CATEGORIES : DRINK_ME_CATEGORIES;
+    const availableCategories = menuDataGlobal.filter(item => categoriesToShow.includes(item.categoria));
+
+    const filteredData = availableCategories.map(item => {
+        const filteredProducts = item.productos.filter(producto => 
+            producto.nombre.toLowerCase().includes(searchTerm) ||
+            (producto.descripcion && producto.descripcion.toLowerCase().includes(searchTerm))
+        );
+        return { ...item, productos: filteredProducts };
+    }).filter(item => item.productos.length > 0);
+
+    renderProducts(filteredData);
 }
 
 function toggleTheme() {
@@ -222,5 +249,3 @@ function hashString(str) {
 }
 
 document.addEventListener('DOMContentLoaded', fetchAndCacheMenu);
-
-setupEventListeners();
