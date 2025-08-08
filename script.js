@@ -3,235 +3,155 @@ const API_URL = 'https://api-swa.onrender.com/api/carta';
 const DRINK_CATEGORIES = ["Botellas", "Cervezas", "Coctelería", "Degustaciones", "Gin", "Licores", "Pisco", "Ron", "Sin alcohol", "Tequila", "Vinos & Espumantes", "Vodka", "Whisky"];
 const FOOD_CATEGORIES = ["Para comenzar", "Para compartir", "Pizzas", "Sushi Especial", "Dulce Final"];
 
-// --- VARIABLES GLOBALES ---
-let menuObserver;
-
-// --- LÓGICA DE LA APLICACIÓN ---
+// --- INICIALIZACIÓN ---
 document.addEventListener('DOMContentLoaded', main);
 
 async function main() {
     setupTheme();
-    menuObserver = createIntersectionObserver();
-    
+    const loadingIndicator = document.getElementById('loading');
+    loadingIndicator.classList.remove('hidden');
+
     try {
-        showLoading(true);
         const rawData = await fetchData();
         const menuData = transformData(rawData);
-        showLoading(false);
-        renderUI(menuData);
+        
+        populateAllMenus(menuData);
+        setupEventListeners(menuData);
+
+        // Mostrar la sección de bebidas por defecto
+        showSection('drink');
     } catch (error) {
-        console.error("Error al cargar el menú:", error);
-        showLoading(false);
-        showError('No se pudo cargar el menú. Por favor, intente más tarde.');
+        console.error("Error fatal al cargar el menú:", error);
+        document.querySelector('main').innerHTML = '<p class="text-center text-red-500">No se pudo cargar el menú. Por favor, intente de nuevo más tarde.</p>';
+    } finally {
+        loadingIndicator.classList.add('hidden');
     }
 }
 
 // --- MANEJO DE DATOS ---
 async function fetchData() {
-    // Nota: localStorage no está disponible en Claude.ai artifacts
-    // En un entorno real, descomenta las siguientes líneas:
-    // const cachedMenu = localStorage.getItem('menuData');
-    // if (cachedMenu) return JSON.parse(cachedMenu);
+    const cachedMenu = localStorage.getItem('menuData');
+    if (cachedMenu) return JSON.parse(cachedMenu);
     
     const response = await fetch(API_URL);
     if (!response.ok) throw new Error(`Error de red: ${response.statusText}`);
     const data = await response.json();
-    
-    // En un entorno real, descomenta la siguiente línea:
-    // localStorage.setItem('menuData', JSON.stringify(data));
+    localStorage.setItem('menuData', JSON.stringify(data));
     return data;
 }
 
 function transformData(apiData) {
     const structuredMenu = {};
     for (const item of apiData) {
-        const { categoria, subcategoria, productos } = item;
-        if (!structuredMenu[categoria]) structuredMenu[categoria] = {};
-        const uniqueSubCategoryName = `${categoria} - ${subcategoria}`;
-        structuredMenu[categoria][uniqueSubCategoryName] = { name: subcategoria, items: productos };
+        if (!structuredMenu[item.categoria]) {
+            structuredMenu[item.categoria] = {};
+        }
+        structuredMenu[item.categoria][item.subcategoria] = { name: item.subcategoria, items: item.productos };
     }
     return structuredMenu;
 }
 
-// --- RENDERIZADO DE LA UI ---
-function renderUI(menuData) {
-    const drinkBtn = document.getElementById('drink-btn');
-    const foodBtn = document.getElementById('food-btn');
-
-    if (drinkBtn && foodBtn) {
-        drinkBtn.addEventListener('click', () => handleGroupClick('Drink', menuData));
-        foodBtn.addEventListener('click', () => handleGroupClick('Food', menuData));
-
-        // Cargar vista por defecto (Drink)
-        handleGroupClick('Drink', menuData);
-    } else {
-        console.error('No se encontraron los botones principales del menú');
-    }
+// --- RENDERIZADO INICIAL ---
+function populateAllMenus(menuData) {
+    // Poblar sección de bebidas
+    const drinkSubcategories = getConsolidatedSubcategories('Drink', menuData);
+    renderSubCategoryButtons(drinkSubcategories, document.getElementById('drink-nav-container'));
+    renderMenuItems(drinkSubcategories, document.getElementById('drink-menu-container'));
+    
+    // Poblar sección de comida
+    const foodSubcategories = getConsolidatedSubcategories('Food', menuData);
+    renderSubCategoryButtons(foodSubcategories, document.getElementById('food-nav-container'));
+    renderMenuItems(foodSubcategories, document.getElementById('food-menu-container'));
 }
 
-function handleGroupClick(groupName, allMenuData) {
-    // Actualizar botones principales activos
-    document.querySelectorAll('.main-category-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.id === `${groupName.toLowerCase()}-btn`);
-    });
-    
-    // Mostrar/ocultar secciones correspondientes
-    const drinkSection = document.getElementById('drink-section');
-    const foodSection = document.getElementById('food-section');
-    
-    if (drinkSection && foodSection) {
-        if (groupName === 'Drink') {
-            drinkSection.classList.remove('hidden');
-            foodSection.classList.add('hidden');
-        } else {
-            foodSection.classList.remove('hidden');
-            drinkSection.classList.add('hidden');
-        }
-    }
-    
+function getConsolidatedSubcategories(groupName, allMenuData) {
     const targetCategories = groupName === 'Drink' ? DRINK_CATEGORIES : FOOD_CATEGORIES;
-    const consolidatedSubcategories = {};
-
+    const consolidated = {};
     for (const category of targetCategories) {
         if (allMenuData[category]) {
-            Object.assign(consolidatedSubcategories, allMenuData[category]);
+            Object.assign(consolidated, allMenuData[category]);
         }
     }
-
-    const targetMenuContainer = groupName === 'Drink' ? 'drink-menu' : 'food-menu';
-    const targetNavContainer = groupName === 'Drink' ? 'drink-nav' : 'food-nav';
-    
-    renderSubCategoryButtons(consolidatedSubcategories, targetNavContainer);
-    renderMenuItems(consolidatedSubcategories, targetMenuContainer);
-
-    // Activar primer botón de subcategoría
-    const firstSubCategoryBtn = document.querySelector(`#${targetNavContainer} .subcategory-btn`);
-    if (firstSubCategoryBtn) {
-        firstSubCategoryBtn.classList.add('active');
-    }
+    return consolidated;
 }
 
-function renderSubCategoryButtons(subCategories, navContainerId) {
-    const subCategoryNav = document.querySelector(`#${navContainerId} > div`);
-    if (!subCategoryNav) {
-        console.error(`No se encontró el contenedor de navegación: ${navContainerId}`);
-        return;
-    }
-    
-    subCategoryNav.innerHTML = '';
-
-    Object.entries(subCategories).forEach(([uniqueSubCategoryName, subCategoryData]) => {
+function renderSubCategoryButtons(subCategories, container) {
+    container.innerHTML = ''; // Limpiar
+    Object.entries(subCategories).forEach(([subCategoryName, subCategoryData]) => {
         const button = document.createElement('button');
         button.className = 'subcategory-btn px-4 py-2 rounded-full text-sm font-medium bg-lightCard dark:bg-darkCard hover:bg-lightAccent hover:text-white dark:hover:bg-darkAccent transition-all duration-200';
         button.textContent = subCategoryData.name;
-        button.dataset.category = uniqueSubCategoryName;
-
-        button.addEventListener('click', () => {
-            // Remover clase activa de otros botones en el mismo nav
-            subCategoryNav.querySelectorAll('.subcategory-btn.active').forEach(b => b.classList.remove('active'));
-            button.classList.add('active');
+        button.dataset.target = `section-${subCategoryName.replace(/\s+/g, '-')}`;
+        
+        button.addEventListener('click', (e) => {
+            container.querySelectorAll('.subcategory-btn').forEach(btn => btn.classList.remove('active'));
+            e.currentTarget.classList.add('active');
             
-            const targetSection = document.getElementById(`section-${uniqueSubCategoryName}`);
-            if (targetSection) {
-                const offset = 200;
-                const elementPosition = targetSection.getBoundingClientRect().top;
-                const offsetPosition = elementPosition + window.pageYOffset - offset;
-                window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+            const targetElement = document.getElementById(e.currentTarget.dataset.target);
+            if(targetElement) {
+                targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         });
-        
-        subCategoryNav.appendChild(button);
+        container.appendChild(button);
     });
 }
 
-function renderMenuItems(subCategories, menuContainerId) {
-    const menuItemsContainer = document.getElementById(menuContainerId);
-    if (!menuItemsContainer) {
-        console.error(`No se encontró el contenedor del menú: ${menuContainerId}`);
-        return;
-    }
-    
-    menuObserver.disconnect();
-    menuItemsContainer.innerHTML = '';
+function renderMenuItems(subCategories, container) {
+    container.innerHTML = ''; // Limpiar
+    Object.entries(subCategories).forEach(([subCategoryName, subCategoryData]) => {
+        // Crear un ancla para el scroll
+        const anchor = document.createElement('div');
+        anchor.id = `section-${subCategoryName.replace(/\s+/g, '-')}`;
+        anchor.className = 'scroll-mt-40'; // Margen superior para el scroll
+        container.appendChild(anchor);
 
-    Object.entries(subCategories).forEach(([uniqueSubCategoryName, subCategoryData]) => {
-        const section = document.createElement('section');
-        section.id = `section-${uniqueSubCategoryName}`;
-        section.className = 'mb-8';
-
+        // Crear el título de la sección
         const title = document.createElement('h2');
-        title.className = 'text-2xl font-bold mb-6 text-lightText dark:text-darkText';
+        title.className = 'text-2xl font-bold mb-4 col-span-1 md:col-span-2';
         title.textContent = subCategoryData.name;
-        section.appendChild(title);
+        container.appendChild(title);
 
-        const itemsGrid = document.createElement('div');
-        itemsGrid.className = 'grid gap-4';
-        
+        // Renderizar los productos
         subCategoryData.items.forEach(item => {
-            const price = new Intl.NumberFormat('es-CL', { 
-                style: 'currency', 
-                currency: 'CLP' 
-            }).format(item.precio);
-            
-            const itemCard = document.createElement('div');
-            itemCard.className = 'menu-item-card';
-            
-            itemCard.innerHTML = `
-                <div class="flex justify-between items-start">
-                    <div class="flex-grow pr-4">
-                        <h3 class="text-lg font-semibold text-lightText dark:text-darkText mb-1">
-                            ${escapeHtml(item.nombre)}
-                        </h3>
-                        ${item.descripcion ? `
-                            <p class="description">
-                                ${escapeHtml(item.descripcion)}
-                            </p>
-                        ` : ''}
-                    </div>
-                    <div class="flex-shrink-0">
-                        <span class="price">${price}</span>
-                    </div>
-                </div>
+            const price = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(item.precio);
+            const card = document.createElement('div');
+            card.className = 'bg-lightCard dark:bg-darkCard rounded-lg shadow p-4 border border-lightBorder dark:border-darkBorder';
+            card.innerHTML = `
+                <h3 class="text-lg font-semibold text-lightText dark:text-darkText">${item.nombre}</h3>
+                ${item.descripcion ? `<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">${item.descripcion}</p>` : ''}
+                <p class="text-lightAccent dark:text-darkAccent font-bold text-base mt-2">${price}</p>
             `;
-            
-            itemsGrid.appendChild(itemCard);
+            container.appendChild(card);
         });
-
-        section.appendChild(itemsGrid);
-        menuItemsContainer.appendChild(section);
-        menuObserver.observe(section);
     });
 }
 
-// --- UTILIDADES ---
-function createIntersectionObserver() {
-    const observerOptions = {
-        rootMargin: '-40% 0px -55% 0px',
-        threshold: 0
-    };
+// --- MANEJO DE EVENTOS ---
+function setupEventListeners() {
+    document.getElementById('drink-btn').addEventListener('click', () => showSection('drink'));
+    document.getElementById('food-btn').addEventListener('click', () => showSection('food'));
+    
+    // Listener de scroll para resaltar subcategorías (opcional, más simple)
+    // El resaltado por click ya da buena respuesta visual.
+}
 
-    return new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const uniqueSubCategoryName = entry.target.id.replace('section-', '');
-                const subCategoryBtn = document.querySelector(`[data-category="${uniqueSubCategoryName}"]`);
-                
-                if (subCategoryBtn) {
-                    // Remover activo de otros botones en el mismo contenedor
-                    const navContainer = subCategoryBtn.closest('nav');
-                    if (navContainer) {
-                        navContainer.querySelectorAll('.subcategory-btn.active').forEach(b => b.classList.remove('active'));
-                        subCategoryBtn.classList.add('active');
-                        subCategoryBtn.scrollIntoView({ 
-                            behavior: 'smooth', 
-                            block: 'nearest', 
-                            inline: 'center' 
-                        });
-                    }
-                }
-            }
-        });
-    }, observerOptions);
+function showSection(sectionName) {
+    const drinkSection = document.getElementById('drink-section');
+    const foodSection = document.getElementById('food-section');
+    const drinkBtn = document.getElementById('drink-btn');
+    const foodBtn = document.getElementById('food-btn');
+
+    if (sectionName === 'drink') {
+        drinkSection.classList.remove('hidden');
+        foodSection.classList.add('hidden');
+        drinkBtn.classList.add('active');
+        foodBtn.classList.remove('active');
+    } else {
+        drinkSection.classList.add('hidden');
+        foodSection.classList.remove('hidden');
+        drinkBtn.classList.remove('active');
+        foodBtn.classList.add('active');
+    }
 }
 
 function setupTheme() {
@@ -239,58 +159,18 @@ function setupTheme() {
     const lightIcon = document.getElementById('theme-light-icon');
     const darkIcon = document.getElementById('theme-dark-icon');
 
-    if (!themeToggle || !lightIcon || !darkIcon) {
-        console.error('No se encontraron los elementos del tema');
-        return;
-    }
-
     const applyTheme = (theme) => {
         document.documentElement.classList.toggle('dark', theme === 'dark');
         lightIcon.classList.toggle('hidden', theme === 'dark');
         darkIcon.classList.toggle('hidden', theme !== 'dark');
     };
 
-    // En un entorno real, usar localStorage:
-    // const savedTheme = localStorage.getItem('theme') || 'light';
-    const savedTheme = 'light'; // Default para Claude.ai artifacts
+    const savedTheme = localStorage.getItem('theme') || 'dark';
     applyTheme(savedTheme);
 
     themeToggle.addEventListener('click', () => {
         const newTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
-        // En un entorno real, descomentar:
-        // localStorage.setItem('theme', newTheme);
+        localStorage.setItem('theme', newTheme);
         applyTheme(newTheme);
     });
-}
-
-function showLoading(show) {
-    const loadingElement = document.getElementById('loading');
-    if (loadingElement) {
-        loadingElement.classList.toggle('hidden', !show);
-    }
-}
-
-function showError(message) {
-    const menuContainers = document.querySelectorAll('#drink-menu, #food-menu');
-    menuContainers.forEach(container => {
-        if (container) {
-            container.innerHTML = `
-                <div class="text-center py-8">
-                    <p class="text-red-600 dark:text-red-400 text-lg">${escapeHtml(message)}</p>
-                    <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-lightAccent dark:bg-darkAccent text-white rounded-lg hover:opacity-80 transition-opacity">
-                        Intentar de nuevo
-                    </button>
-                </div>
-            `;
-        }
-    });
-}
-
-function escapeHtml(unsafe) {
-    return unsafe
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
 }
