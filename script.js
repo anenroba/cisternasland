@@ -2,7 +2,7 @@
 const API_URL = 'https://api-swa.onrender.com/api/carta';
 // Definición de qué categorías de la API corresponden a cada grupo.
 const DRINK_CATEGORIES = ["Botellas", "Cervezas", "Coctelería", "Degustaciones", "Gin", "Licores", "Pisco", "Ron", "Sin alcohol", "Tequila", "Vinos & Espumantes", "Vodka", "Whisky"];
-const FOOD_CATEGORIES = ["Dulce Final", "Para comenzar", "Para compartir", "Pizzas", "Sushi Especial"];
+const FOOD_CATEGORIES = ["Para comenzar", "Para compartir", "Pizzas", "Sushi Especial", "Dulce Final"];
 
 
 // Configuración de Tailwind para colores y fuentes personalizados
@@ -79,7 +79,7 @@ function transformData(apiData) {
             structuredMenu[categoria] = {};
         }
 
-        // Evitar sobreescribir subcategorías si tienen el mismo nombre pero distinta categoría principal
+        // Crear un nombre único para la subcategoría para evitar colisiones
         const uniqueSubCategoryName = `${categoria} - ${subcategoria}`;
         structuredMenu[categoria][uniqueSubCategoryName] = {
             name: subcategoria,
@@ -145,13 +145,13 @@ function renderSubCategoryButtons(subCategories) {
     Object.entries(subCategories).forEach(([uniqueSubCategoryName, subCategoryData]) => {
         const button = document.createElement('button');
         button.className = 'sub-category-btn whitespace-nowrap flex-shrink-0 py-2 px-4 rounded-lg text-sm font-medium hover:bg-lightAccent hover:text-white dark:hover:bg-darkAccent transition-all duration-200 focus:outline-none';
-        button.textContent = subCategoryData.name; // Usar el nombre original
-        button.dataset.subCategory = uniqueSubCategoryName; // Usar el nombre único para el ID
+        button.textContent = subCategoryData.name; // Usar el nombre original para mostrar
+        button.dataset.subCategory = uniqueSubCategoryName; // Usar el nombre único como identificador
         button.addEventListener('click', () => {
-             // Lógica de scroll suave al hacer clic
+             // Lógica de scroll suave al hacer clic en un botón de subcategoría
             const targetSection = document.getElementById(`section-${uniqueSubCategoryName}`);
             if (targetSection) {
-                const offset = 160; // Ajustar este valor para la altura de los navs fijos
+                const offset = 160; // Espacio para los encabezados fijos
                 const elementPosition = targetSection.getBoundingClientRect().top;
                 const offsetPosition = elementPosition + window.pageYOffset - offset;
 
@@ -179,7 +179,7 @@ function renderMenuItems(subCategories) {
 
         const title = document.createElement('h2');
         title.className = 'text-2xl font-bold mb-4 px-2';
-        title.textContent = subCategoryData.name; // Usar el nombre original
+        title.textContent = subCategoryData.name; // Mostrar el nombre original
         section.appendChild(title);
 
         const itemsGrid = document.createElement('div');
@@ -201,7 +201,7 @@ function renderMenuItems(subCategories) {
 
         section.appendChild(itemsGrid);
         menuItemsContainer.appendChild(section);
-        observer.observe(section); // Observar la nueva sección
+        observer.observe(section); // Poner la nueva sección bajo vigilancia del observer
     });
 }
 
@@ -213,7 +213,7 @@ function renderMenuItems(subCategories) {
  */
 function createIntersectionObserver() {
     const observerOptions = {
-        rootMargin: '-40% 0px -60% 0px', // Activa cuando la sección está en el medio de la vista
+        rootMargin: '-40% 0px -60% 0px', // Activa cuando la sección está en el 40% superior de la pantalla
         threshold: 0
     };
 
@@ -225,7 +225,7 @@ function createIntersectionObserver() {
                 if (entry.isIntersecting) {
                     document.querySelectorAll('.sub-category-btn.active').forEach(b => b.classList.remove('active'));
                     subCategoryBtn.classList.add('active');
-                    // Scroll horizontal del nav para que el botón activo sea visible
+                    // Hacer scroll horizontal para que el botón activo sea visible en el menú
                     subCategoryBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
                 }
             }

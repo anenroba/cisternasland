@@ -1,0 +1,33 @@
+/* Custom scrollbar for a minimalist look */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+.dark ::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: theme('colors.lightAccent');
+    border-radius: 10px;
+}
+.dark ::-webkit-scrollbar-thumb {
+    background: theme('colors.darkAccent');
+}
+
+/* Style for active main category button */
+.main-category-btn.active {
+    @apply bg-lightAccent text-white dark:bg-darkAccent;
+}
+/* Style for active sub-category button */
+.sub-category-btn.active {
+    @apply bg-lightAccent text-white dark:bg-darkAccent;
+}
+
+/* Ocultar scrollbar en los navs pegajosos para un look más limpio */
+#main-category-nav::-webkit-scrollbar,
+#sub-category-nav::-webkit-scrollbar {
+    display: none;
+}
