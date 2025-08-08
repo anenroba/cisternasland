@@ -68,6 +68,7 @@ function renderUI(menuData) {
     const foodBtn = document.getElementById('food-btn');
 
     drinkBtn.addEventListener('click', () => handleGroupClick('Drink', menuData));
+    // CORRECCIÓN: Se cambió "menu.Data" por "menuData"
     foodBtn.addEventListener('click', () => handleGroupClick('Food', menuData));
 
     handleGroupClick('Drink', menuData); // Cargar vista por defecto
