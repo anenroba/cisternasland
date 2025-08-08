@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Toteat Shop - Menú</title>
+    <title>Menú Interactivo - Cisternas</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
@@ -15,50 +15,23 @@
              bg-lightBg text-lightText dark:bg-darkBg dark:text-darkText">
 
     <div class="container mx-auto max-w-2xl">
-        <header class="sticky top-0 z-20 flex justify-end items-center py-4 px-4 bg-lightBg dark:bg-darkBg border-b border-lightBorder dark:border-darkBorder">
+        <header class="sticky top-0 z-20 flex justify-end items-center py-4 px-4 bg-lightBg/80 dark:bg-darkBg/80 backdrop-blur-sm border-b border-lightBorder dark:border-darkBorder">
             <div class="flex items-center space-x-4">
-                <button id="theme-toggle" class="p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-lightAccent dark:focus:ring-darkAccent transition-colors duration-200">
-                    <svg id="sun-icon" class="h-6 w-6 text-yellow-500 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h1M3 12h1m15.325-7.758l-.707.707M4.372 19.372l-.707.707M19.372 4.372l-.707-.707M4.686 4.686l-.707-.707"/>
-                    </svg>
-                    <svg id="moon-icon" class="h-6 w-6 text-gray-700 dark:text-gray-300 block dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9 9 0 008.354-5.646z"/>
-                    </svg>
-                </button>
-                <button class="p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-lightAccent dark:focus:ring-darkAccent transition-colors duration-200">
-                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                    </svg>
+                <button id="theme-toggle" class="p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-lightAccent dark:focus:ring-darkAccent">
+                    <svg id="theme-light-icon" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707.707M6.343 6.343l-.707.707m12.728 0l-.707-.707M6.343 17.657l-.707.707M12 12a5 5 0 100-10 5 5 0 000 10z"/></svg>
+                    <svg id="theme-dark-icon" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9 9 0 008.354-5.646z" /></svg>
                 </button>
             </div>
         </header>
 
-        <nav id="main-category-nav" class="sticky top-[4rem] z-10 flex justify-around bg-lightCard dark:bg-darkCard rounded-b-xl p-2 shadow-sm">
-            <button class="main-category-btn py-2 px-6 rounded-lg text-lg font-semibold hover:bg-lightAccent hover:text-white dark:hover:bg-darkAccent transition-all duration-200 focus:outline-none active" data-main-category="drinks">Bebidas</button>
-            <button class="main-category-btn py-2 px-6 rounded-lg text-lg font-semibold hover:bg-lightAccent hover:text-white dark:hover:bg-darkAccent transition-all duration-200 focus:outline-none" data-main-category="food">Comida</button>
-        </nav>
+        <nav id="main-category-nav" class="sticky top-[4.5rem] z-10 flex justify-center bg-lightCard dark:bg-darkCard rounded-b-xl p-2 shadow-sm overflow-x-auto"></nav>
 
-        <nav id="sub-category-nav" class="sticky top-[8rem] z-10 flex justify-around bg-lightCard dark:bg-darkCard rounded-xl p-2 shadow-sm mt-4 mb-6 transition-all duration-200">
-            </nav>
+        <nav id="sub-category-nav" class="sticky top-[8.5rem] z-10 flex justify-center bg-lightCard/80 dark:bg-darkCard/80 backdrop-blur-sm rounded-xl p-2 shadow-sm mt-4 mb-6 overflow-x-auto"></nav>
 
         <div id="menu-items-container" class="space-y-4 px-4 pb-20">
-            </div>
+            <p id="loading-message" class="text-center text-lg mt-8">Cargando menú...</p>
+        </div>
     </div>
-
-    <footer class="fixed bottom-0 left-0 right-0 bg-lightCard dark:bg-darkCard border-t border-lightBorder dark:border-darkBorder p-4 flex justify-around items-center shadow-lg z-30">
-        <button class="flex flex-col items-center text-sm text-lightText dark:text-darkText hover:text-lightAccent dark:hover:text-darkAccent focus:outline-none">
-            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-            <span>Atrás</span>
-        </button>
-        <button class="flex flex-col items-center text-sm text-lightText dark:text-darkText hover:text-lightAccent dark:hover:text-darkAccent focus:outline-none">
-            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m0 0l7 7m-7-7h18a1 1 0 001-1V5a1 1 0 00-1-1H3a1 1 0 00-1 1v6a1 1 0 001 1z"/></svg>
-            <span>Inicio</span>
-        </button>
-        <button class="flex flex-col items-center text-sm text-lightText dark:text-darkText hover:text-lightAccent dark:hover:text-darkAccent focus:outline-none">
-            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"/></svg>
-            <span>Más</span>
-        </button>
-    </footer>
 
 </body>
 </html>
