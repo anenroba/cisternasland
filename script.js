@@ -4,50 +4,41 @@ const DRINK_CATEGORIES = ["Botellas", "Cervezas", "Coctelería", "Degustaciones"
 const FOOD_CATEGORIES = ["Para comenzar", "Para compartir", "Pizzas", "Sushi Especial", "Dulce Final"];
 
 // --- VARIABLES GLOBALES ---
-let menuObserver; // Se declara aquí para que sea persistente
-
-// Configuración de Tailwind
-tailwind.config = {
-    darkMode: 'class',
-    theme: {
-        extend: {
-            fontFamily: { inter: ['Inter', 'sans-serif'] },
-            colors: {
-                lightBg: '#fdfaf6', lightCard: '#ffffff', lightText: '#4a3d3c', lightAccent: '#b87333', lightBorder: '#e0c9b0',
-                darkBg: '#2a1a16', darkCard: '#3e2d29', darkText: '#f5e8da', darkAccent: '#e49b5c', darkBorder: '#5c4541',
-            }
-        }
-    }
-};
+let menuObserver;
 
 // --- LÓGICA DE LA APLICACIÓN ---
 document.addEventListener('DOMContentLoaded', main);
 
 async function main() {
     setupTheme();
-    menuObserver = createIntersectionObserver(); // Se inicializa el observer una sola vez
-    const loadingMessage = document.getElementById('loading-message');
+    menuObserver = createIntersectionObserver();
     
     try {
+        showLoading(true);
         const rawData = await fetchData();
         const menuData = transformData(rawData);
-        loadingMessage.style.display = 'none';
+        showLoading(false);
         renderUI(menuData);
     } catch (error) {
         console.error("Error al cargar el menú:", error);
-        loadingMessage.textContent = 'No se pudo cargar el menú. Por favor, intente más tarde.';
+        showLoading(false);
+        showError('No se pudo cargar el menú. Por favor, intente más tarde.');
     }
 }
 
 // --- MANEJO DE DATOS ---
 async function fetchData() {
-    const cachedMenu = localStorage.getItem('menuData');
-    if (cachedMenu) return JSON.parse(cachedMenu);
+    // Nota: localStorage no está disponible en Claude.ai artifacts
+    // En un entorno real, descomenta las siguientes líneas:
+    // const cachedMenu = localStorage.getItem('menuData');
+    // if (cachedMenu) return JSON.parse(cachedMenu);
     
     const response = await fetch(API_URL);
     if (!response.ok) throw new Error(`Error de red: ${response.statusText}`);
     const data = await response.json();
-    localStorage.setItem('menuData', JSON.stringify(data));
+    
+    // En un entorno real, descomenta la siguiente línea:
+    // localStorage.setItem('menuData', JSON.stringify(data));
     return data;
 }
 
@@ -67,17 +58,36 @@ function renderUI(menuData) {
     const drinkBtn = document.getElementById('drink-btn');
     const foodBtn = document.getElementById('food-btn');
 
-    drinkBtn.addEventListener('click', () => handleGroupClick('Drink', menuData));
-    // CORRECCIÓN: Se cambió "menu.Data" por "menuData"
-    foodBtn.addEventListener('click', () => handleGroupClick('Food', menuData));
+    if (drinkBtn && foodBtn) {
+        drinkBtn.addEventListener('click', () => handleGroupClick('Drink', menuData));
+        foodBtn.addEventListener('click', () => handleGroupClick('Food', menuData));
 
-    handleGroupClick('Drink', menuData); // Cargar vista por defecto
+        // Cargar vista por defecto (Drink)
+        handleGroupClick('Drink', menuData);
+    } else {
+        console.error('No se encontraron los botones principales del menú');
+    }
 }
 
 function handleGroupClick(groupName, allMenuData) {
-    document.querySelectorAll('.group-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.id.startsWith(groupName.toLowerCase()));
+    // Actualizar botones principales activos
+    document.querySelectorAll('.main-category-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.id === `${groupName.toLowerCase()}-btn`);
     });
+    
+    // Mostrar/ocultar secciones correspondientes
+    const drinkSection = document.getElementById('drink-section');
+    const foodSection = document.getElementById('food-section');
+    
+    if (drinkSection && foodSection) {
+        if (groupName === 'Drink') {
+            drinkSection.classList.remove('hidden');
+            foodSection.classList.add('hidden');
+        } else {
+            foodSection.classList.remove('hidden');
+            drinkSection.classList.add('hidden');
+        }
+    }
     
     const targetCategories = groupName === 'Drink' ? DRINK_CATEGORIES : FOOD_CATEGORIES;
     const consolidatedSubcategories = {};
@@ -88,69 +98,103 @@ function handleGroupClick(groupName, allMenuData) {
         }
     }
 
-    renderSubCategoryButtons(consolidatedSubcategories);
-    renderMenuItems(consolidatedSubcategories);
+    const targetMenuContainer = groupName === 'Drink' ? 'drink-menu' : 'food-menu';
+    const targetNavContainer = groupName === 'Drink' ? 'drink-nav' : 'food-nav';
+    
+    renderSubCategoryButtons(consolidatedSubcategories, targetNavContainer);
+    renderMenuItems(consolidatedSubcategories, targetMenuContainer);
 
-    const firstSubCategoryBtn = document.querySelector('.sub-category-btn');
-    if (firstSubCategoryBtn) firstSubCategoryBtn.classList.add('active');
+    // Activar primer botón de subcategoría
+    const firstSubCategoryBtn = document.querySelector(`#${targetNavContainer} .subcategory-btn`);
+    if (firstSubCategoryBtn) {
+        firstSubCategoryBtn.classList.add('active');
+    }
 }
 
-function renderSubCategoryButtons(subCategories) {
-    const subCategoryNav = document.getElementById('sub-category-nav');
+function renderSubCategoryButtons(subCategories, navContainerId) {
+    const subCategoryNav = document.querySelector(`#${navContainerId} > div`);
+    if (!subCategoryNav) {
+        console.error(`No se encontró el contenedor de navegación: ${navContainerId}`);
+        return;
+    }
+    
     subCategoryNav.innerHTML = '';
 
     Object.entries(subCategories).forEach(([uniqueSubCategoryName, subCategoryData]) => {
         const button = document.createElement('button');
-        button.className = 'sub-category-btn whitespace-nowrap flex-shrink-0 py-2 px-4 rounded-lg text-sm font-medium hover:bg-lightAccent hover:text-white dark:hover:bg-darkAccent transition-all duration-200 focus:outline-none';
+        button.className = 'subcategory-btn px-4 py-2 rounded-full text-sm font-medium bg-lightCard dark:bg-darkCard hover:bg-lightAccent hover:text-white dark:hover:bg-darkAccent transition-all duration-200';
         button.textContent = subCategoryData.name;
-        button.dataset.subCategory = uniqueSubCategoryName;
+        button.dataset.category = uniqueSubCategoryName;
 
         button.addEventListener('click', () => {
-            document.querySelectorAll('.sub-category-btn.active').forEach(b => b.classList.remove('active'));
+            // Remover clase activa de otros botones en el mismo nav
+            subCategoryNav.querySelectorAll('.subcategory-btn.active').forEach(b => b.classList.remove('active'));
             button.classList.add('active');
             
             const targetSection = document.getElementById(`section-${uniqueSubCategoryName}`);
             if (targetSection) {
-                const offset = 160;
+                const offset = 200;
                 const elementPosition = targetSection.getBoundingClientRect().top;
                 const offsetPosition = elementPosition + window.pageYOffset - offset;
                 window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
             }
         });
+        
         subCategoryNav.appendChild(button);
     });
 }
 
-function renderMenuItems(subCategories) {
-    const menuItemsContainer = document.getElementById('menu-items-container');
+function renderMenuItems(subCategories, menuContainerId) {
+    const menuItemsContainer = document.getElementById(menuContainerId);
+    if (!menuItemsContainer) {
+        console.error(`No se encontró el contenedor del menú: ${menuContainerId}`);
+        return;
+    }
+    
     menuObserver.disconnect();
     menuItemsContainer.innerHTML = '';
 
     Object.entries(subCategories).forEach(([uniqueSubCategoryName, subCategoryData]) => {
         const section = document.createElement('section');
         section.id = `section-${uniqueSubCategoryName}`;
-        section.className = 'pt-6 pb-4';
+        section.className = 'mb-8';
 
         const title = document.createElement('h2');
-        title.className = 'text-2xl font-bold mb-4 px-2';
+        title.className = 'text-2xl font-bold mb-6 text-lightText dark:text-darkText';
         title.textContent = subCategoryData.name;
         section.appendChild(title);
 
         const itemsGrid = document.createElement('div');
-        itemsGrid.className = 'space-y-4';
+        itemsGrid.className = 'grid gap-4';
         
         subCategoryData.items.forEach(item => {
-            const price = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(item.precio);
-            const itemHtml = `
-                <div class="flex items-center bg-lightCard dark:bg-darkCard rounded-xl shadow-sm overflow-hidden p-3 transition-transform duration-200 hover:scale-[1.01] border border-lightBorder dark:border-darkBorder">
-                    <div class="flex-grow">
-                        <h3 class="text-lg sm:text-xl font-semibold mb-1">${item.nombre}</h3>
-                        ${item.descripcion ? `<p class="text-sm text-gray-600 dark:text-gray-400 mb-2">${item.descripcion}</p>` : ''}
-                        <p class="text-lightAccent dark:text-darkAccent font-bold text-base sm:text-lg">${price}</p>
+            const price = new Intl.NumberFormat('es-CL', { 
+                style: 'currency', 
+                currency: 'CLP' 
+            }).format(item.precio);
+            
+            const itemCard = document.createElement('div');
+            itemCard.className = 'menu-item-card';
+            
+            itemCard.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div class="flex-grow pr-4">
+                        <h3 class="text-lg font-semibold text-lightText dark:text-darkText mb-1">
+                            ${escapeHtml(item.nombre)}
+                        </h3>
+                        ${item.descripcion ? `
+                            <p class="description">
+                                ${escapeHtml(item.descripcion)}
+                            </p>
+                        ` : ''}
+                    </div>
+                    <div class="flex-shrink-0">
+                        <span class="price">${price}</span>
                     </div>
                 </div>
             `;
-            itemsGrid.innerHTML += itemHtml;
+            
+            itemsGrid.appendChild(itemCard);
         });
 
         section.appendChild(itemsGrid);
@@ -170,12 +214,20 @@ function createIntersectionObserver() {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 const uniqueSubCategoryName = entry.target.id.replace('section-', '');
-                const subCategoryBtn = document.querySelector(`.sub-category-btn[data-sub-category="${uniqueSubCategoryName}"]`);
+                const subCategoryBtn = document.querySelector(`[data-category="${uniqueSubCategoryName}"]`);
                 
                 if (subCategoryBtn) {
-                    document.querySelectorAll('.sub-category-btn.active').forEach(b => b.classList.remove('active'));
-                    subCategoryBtn.classList.add('active');
-                    subCategoryBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                    // Remover activo de otros botones en el mismo contenedor
+                    const navContainer = subCategoryBtn.closest('nav');
+                    if (navContainer) {
+                        navContainer.querySelectorAll('.subcategory-btn.active').forEach(b => b.classList.remove('active'));
+                        subCategoryBtn.classList.add('active');
+                        subCategoryBtn.scrollIntoView({ 
+                            behavior: 'smooth', 
+                            block: 'nearest', 
+                            inline: 'center' 
+                        });
+                    }
                 }
             }
         });
@@ -187,18 +239,58 @@ function setupTheme() {
     const lightIcon = document.getElementById('theme-light-icon');
     const darkIcon = document.getElementById('theme-dark-icon');
 
+    if (!themeToggle || !lightIcon || !darkIcon) {
+        console.error('No se encontraron los elementos del tema');
+        return;
+    }
+
     const applyTheme = (theme) => {
         document.documentElement.classList.toggle('dark', theme === 'dark');
         lightIcon.classList.toggle('hidden', theme === 'dark');
         darkIcon.classList.toggle('hidden', theme !== 'dark');
     };
 
-    const savedTheme = localStorage.getItem('theme') || 'dark';
+    // En un entorno real, usar localStorage:
+    // const savedTheme = localStorage.getItem('theme') || 'light';
+    const savedTheme = 'light'; // Default para Claude.ai artifacts
     applyTheme(savedTheme);
 
     themeToggle.addEventListener('click', () => {
         const newTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
-        localStorage.setItem('theme', newTheme);
+        // En un entorno real, descomentar:
+        // localStorage.setItem('theme', newTheme);
         applyTheme(newTheme);
     });
+}
+
+function showLoading(show) {
+    const loadingElement = document.getElementById('loading');
+    if (loadingElement) {
+        loadingElement.classList.toggle('hidden', !show);
+    }
+}
+
+function showError(message) {
+    const menuContainers = document.querySelectorAll('#drink-menu, #food-menu');
+    menuContainers.forEach(container => {
+        if (container) {
+            container.innerHTML = `
+                <div class="text-center py-8">
+                    <p class="text-red-600 dark:text-red-400 text-lg">${escapeHtml(message)}</p>
+                    <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-lightAccent dark:bg-darkAccent text-white rounded-lg hover:opacity-80 transition-opacity">
+                        Intentar de nuevo
+                    </button>
+                </div>
+            `;
+        }
+    });
+}
+
+function escapeHtml(unsafe) {
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
