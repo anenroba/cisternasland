@@ -1,5 +1,9 @@
 // --- CONFIGURACIÓN ---
 const API_URL = 'https://api-swa.onrender.com/api/carta';
+// Definición de qué categorías de la API corresponden a cada grupo.
+const DRINK_CATEGORIES = ["Botellas", "Cervezas", "Coctelería", "Degustaciones", "Gin", "Licores", "Pisco", "Ron", "Sin alcohol", "Tequila", "Vinos & Espumantes", "Vodka", "Whisky"];
+const FOOD_CATEGORIES = ["Dulce Final", "Para comenzar", "Para compartir", "Pizzas", "Sushi Especial"];
+
 
 // Configuración de Tailwind para colores y fuentes personalizados
 tailwind.config = {
@@ -75,7 +79,9 @@ function transformData(apiData) {
             structuredMenu[categoria] = {};
         }
 
-        structuredMenu[categoria][subcategoria] = {
+        // Evitar sobreescribir subcategorías si tienen el mismo nombre pero distinta categoría principal
+        const uniqueSubCategoryName = `${categoria} - ${subcategoria}`;
+        structuredMenu[categoria][uniqueSubCategoryName] = {
             name: subcategoria,
             items: productos
         };
@@ -86,44 +92,41 @@ function transformData(apiData) {
 
 // --- RENDERIZADO DE LA UI ---
 
-let currentMainMenu; // Referencia al menú actualmente cargado
-
 /**
  * Orquesta el renderizado de toda la interfaz a partir de los datos del menú.
  */
 function renderUI(menuData) {
-    currentMainMenu = menuData; // Guardar referencia global
-    const mainCategoryNav = document.getElementById('main-category-nav');
-    
-    // Renderizar botones de categorías principales
-    const mainCategories = Object.keys(menuData);
-    mainCategories.forEach(categoryName => {
-        const button = document.createElement('button');
-        button.className = 'main-category-btn whitespace-nowrap flex-shrink-0 py-2 px-5 rounded-lg text-lg font-semibold hover:bg-lightAccent hover:text-white dark:hover:bg-darkAccent transition-all duration-200 focus:outline-none';
-        button.textContent = categoryName;
-        button.dataset.mainCategory = categoryName;
-        button.addEventListener('click', () => handleMainCategoryClick(categoryName));
-        mainCategoryNav.appendChild(button);
-    });
+    const drinkBtn = document.getElementById('drink-btn');
+    const foodBtn = document.getElementById('food-btn');
 
-    // Activar la primera categoría por defecto
-    if (mainCategories.length > 0) {
-        handleMainCategoryClick(mainCategories[0]);
-    }
+    drinkBtn.addEventListener('click', () => handleGroupClick('Drink', menuData));
+    foodBtn.addEventListener('click', () => handleGroupClick('Food', menuData));
+
+    // Cargar "Drink" por defecto al iniciar
+    handleGroupClick('Drink', menuData);
 }
 
 /**
- * Maneja el clic en un botón de categoría principal.
+ * Maneja el clic en un botón de grupo principal (Food o Drink).
  */
-function handleMainCategoryClick(categoryName) {
+function handleGroupClick(groupName, allMenuData) {
     // Actualizar estilo del botón activo
-    document.querySelectorAll('.main-category-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.mainCategory === categoryName);
+    document.querySelectorAll('.group-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.id.startsWith(groupName.toLowerCase()));
     });
+    
+    const targetCategories = groupName === 'Drink' ? DRINK_CATEGORIES : FOOD_CATEGORIES;
+    const consolidatedSubcategories = {};
 
-    const subCategories = currentMainMenu[categoryName];
-    renderSubCategoryButtons(subCategories);
-    renderMenuItems(subCategories);
+    // Recolectar todas las subcategorías del grupo seleccionado
+    for (const category of targetCategories) {
+        if (allMenuData[category]) {
+            Object.assign(consolidatedSubcategories, allMenuData[category]);
+        }
+    }
+
+    renderSubCategoryButtons(consolidatedSubcategories);
+    renderMenuItems(consolidatedSubcategories);
 
     // Activar el primer botón de subcategoría por defecto
     const firstSubCategoryBtn = document.querySelector('.sub-category-btn');
@@ -139,14 +142,14 @@ function renderSubCategoryButtons(subCategories) {
     const subCategoryNav = document.getElementById('sub-category-nav');
     subCategoryNav.innerHTML = ''; // Limpiar anteriores
 
-    Object.keys(subCategories).forEach(subCategoryName => {
+    Object.entries(subCategories).forEach(([uniqueSubCategoryName, subCategoryData]) => {
         const button = document.createElement('button');
         button.className = 'sub-category-btn whitespace-nowrap flex-shrink-0 py-2 px-4 rounded-lg text-sm font-medium hover:bg-lightAccent hover:text-white dark:hover:bg-darkAccent transition-all duration-200 focus:outline-none';
-        button.textContent = subCategoryName;
-        button.dataset.subCategory = subCategoryName;
+        button.textContent = subCategoryData.name; // Usar el nombre original
+        button.dataset.subCategory = uniqueSubCategoryName; // Usar el nombre único para el ID
         button.addEventListener('click', () => {
              // Lógica de scroll suave al hacer clic
-            const targetSection = document.getElementById(`section-${subCategoryName}`);
+            const targetSection = document.getElementById(`section-${uniqueSubCategoryName}`);
             if (targetSection) {
                 const offset = 160; // Ajustar este valor para la altura de los navs fijos
                 const elementPosition = targetSection.getBoundingClientRect().top;
@@ -169,14 +172,14 @@ function renderMenuItems(subCategories) {
     // Crear un observer para resaltar la subcategoría activa al hacer scroll
     const observer = createIntersectionObserver();
 
-    Object.entries(subCategories).forEach(([subCategoryName, subCategoryData]) => {
+    Object.entries(subCategories).forEach(([uniqueSubCategoryName, subCategoryData]) => {
         const section = document.createElement('section');
-        section.id = `section-${subCategoryName}`;
+        section.id = `section-${uniqueSubCategoryName}`;
         section.className = 'pt-6 pb-4';
 
         const title = document.createElement('h2');
         title.className = 'text-2xl font-bold mb-4 px-2';
-        title.textContent = subCategoryName;
+        title.textContent = subCategoryData.name; // Usar el nombre original
         section.appendChild(title);
 
         const itemsGrid = document.createElement('div');
@@ -216,8 +219,8 @@ function createIntersectionObserver() {
 
     return new IntersectionObserver((entries) => {
         entries.forEach(entry => {
-            const subCategoryName = entry.target.id.replace('section-', '');
-            const subCategoryBtn = document.querySelector(`.sub-category-btn[data-sub-category="${subCategoryName}"]`);
+            const uniqueSubCategoryName = entry.target.id.replace('section-', '');
+            const subCategoryBtn = document.querySelector(`.sub-category-btn[data-sub-category="${uniqueSubCategoryName}"]`);
             if (subCategoryBtn) {
                 if (entry.isIntersecting) {
                     document.querySelectorAll('.sub-category-btn.active').forEach(b => b.classList.remove('active'));
