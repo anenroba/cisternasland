@@ -3,11 +3,15 @@ const API_URL = 'https://api-swa.onrender.com/api/carta';
 const DRINK_CATEGORIES = ["Botellas", "Cervezas", "Coctelería", "Degustaciones", "Gin", "Licores", "Pisco", "Ron", "Sin alcohol", "Tequila", "Vinos & Espumantes", "Vodka", "Whisky"];
 const FOOD_CATEGORIES = ["Para comenzar", "Para compartir", "Pizzas", "Sushi Especial", "Dulce Final"];
 
+// --- VARIABLES GLOBALES ---
+let menuObserver; // Observer para resaltar subcategoría activa en scroll
+
 // --- INICIALIZACIÓN ---
 document.addEventListener('DOMContentLoaded', main);
 
 async function main() {
     setupTheme();
+    menuObserver = createIntersectionObserver();
     const loadingIndicator = document.getElementById('loading');
     loadingIndicator.classList.remove('hidden');
 
@@ -15,14 +19,13 @@ async function main() {
         const rawData = await fetchData();
         const menuData = transformData(rawData);
         
-        populateAllMenus(menuData);
         setupEventListeners(menuData);
+        // Cargar "Drink" por defecto al iniciar
+        handleGroupClick('Drink', menuData);
 
-        // Mostrar la sección de bebidas por defecto
-        showSection('drink');
     } catch (error) {
         console.error("Error fatal al cargar el menú:", error);
-        document.querySelector('main').innerHTML = '<p class="text-center text-red-500">No se pudo cargar el menú. Por favor, intente de nuevo más tarde.</p>';
+        document.getElementById('menu-items-container').innerHTML = `<p class="text-center text-red-500">No se pudo cargar el menú.</p>`;
     } finally {
         loadingIndicator.classList.add('hidden');
     }
@@ -43,25 +46,10 @@ async function fetchData() {
 function transformData(apiData) {
     const structuredMenu = {};
     for (const item of apiData) {
-        if (!structuredMenu[item.categoria]) {
-            structuredMenu[item.categoria] = {};
-        }
+        if (!structuredMenu[item.categoria]) structuredMenu[item.categoria] = {};
         structuredMenu[item.categoria][item.subcategoria] = { name: item.subcategoria, items: item.productos };
     }
     return structuredMenu;
-}
-
-// --- RENDERIZADO INICIAL ---
-function populateAllMenus(menuData) {
-    // Poblar sección de bebidas
-    const drinkSubcategories = getConsolidatedSubcategories('Drink', menuData);
-    renderSubCategoryButtons(drinkSubcategories, document.getElementById('drink-nav-container'));
-    renderMenuItems(drinkSubcategories, document.getElementById('drink-menu-container'));
-    
-    // Poblar sección de comida
-    const foodSubcategories = getConsolidatedSubcategories('Food', menuData);
-    renderSubCategoryButtons(foodSubcategories, document.getElementById('food-nav-container'));
-    renderMenuItems(foodSubcategories, document.getElementById('food-menu-container'));
 }
 
 function getConsolidatedSubcategories(groupName, allMenuData) {
@@ -75,43 +63,70 @@ function getConsolidatedSubcategories(groupName, allMenuData) {
     return consolidated;
 }
 
-function renderSubCategoryButtons(subCategories, container) {
-    container.innerHTML = ''; // Limpiar
+// --- MANEJO DE EVENTOS ---
+function setupEventListeners(menuData) {
+    document.getElementById('drink-btn').addEventListener('click', () => handleGroupClick('Drink', menuData));
+    document.getElementById('food-btn').addEventListener('click', () => handleGroupClick('Food', menuData));
+}
+
+function handleGroupClick(groupName, allMenuData) {
+    // Resaltar botón de grupo principal
+    document.querySelectorAll('.main-category-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.id === `${groupName.toLowerCase()}-btn`);
+    });
+    
+    const subCategories = getConsolidatedSubcategories(groupName, allMenuData);
+    renderSubCategoryButtons(subCategories);
+    renderMenuItems(subCategories);
+    
+    // Activar primera subcategoría por defecto
+    const firstSubCategoryBtn = document.querySelector('.subcategory-btn');
+    if (firstSubCategoryBtn) firstSubCategoryBtn.classList.add('active');
+}
+
+// --- RENDERIZADO ---
+function renderSubCategoryButtons(subCategories) {
+    const container = document.getElementById('sub-category-container');
+    container.innerHTML = '';
     Object.entries(subCategories).forEach(([subCategoryName, subCategoryData]) => {
         const button = document.createElement('button');
-        button.className = 'subcategory-btn px-4 py-2 rounded-full text-sm font-medium bg-lightCard dark:bg-darkCard hover:bg-lightAccent hover:text-white dark:hover:bg-darkAccent transition-all duration-200';
+        button.className = 'subcategory-btn flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium bg-lightCard dark:bg-darkCard hover:bg-lightAccent hover:text-white dark:hover:bg-darkAccent transition-all duration-200';
         button.textContent = subCategoryData.name;
         button.dataset.target = `section-${subCategoryName.replace(/\s+/g, '-')}`;
-        
+
         button.addEventListener('click', (e) => {
-            container.querySelectorAll('.subcategory-btn').forEach(btn => btn.classList.remove('active'));
-            e.currentTarget.classList.add('active');
-            
             const targetElement = document.getElementById(e.currentTarget.dataset.target);
             if(targetElement) {
-                targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                const offset = 150; // Offset para los headers fijos
+                const bodyRect = document.body.getBoundingClientRect().top;
+                const elementRect = targetElement.getBoundingClientRect().top;
+                const elementPosition = elementRect - bodyRect;
+                const offsetPosition = elementPosition - offset;
+
+                window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
             }
         });
         container.appendChild(button);
     });
 }
 
-function renderMenuItems(subCategories, container) {
-    container.innerHTML = ''; // Limpiar
+function renderMenuItems(subCategories) {
+    const container = document.getElementById('menu-items-container');
+    menuObserver.disconnect();
+    container.innerHTML = '';
+
     Object.entries(subCategories).forEach(([subCategoryName, subCategoryData]) => {
-        // Crear un ancla para el scroll
-        const anchor = document.createElement('div');
-        anchor.id = `section-${subCategoryName.replace(/\s+/g, '-')}`;
-        anchor.className = 'scroll-mt-40'; // Margen superior para el scroll
-        container.appendChild(anchor);
+        const section = document.createElement('section');
+        section.id = `section-${subCategoryName.replace(/\s+/g, '-')}`;
+        section.className = 'scroll-mt-40 pt-6'; // Margen para el ancla del scroll
 
-        // Crear el título de la sección
         const title = document.createElement('h2');
-        title.className = 'text-2xl font-bold mb-4 col-span-1 md:col-span-2';
+        title.className = 'text-2xl font-bold mb-4';
         title.textContent = subCategoryData.name;
-        container.appendChild(title);
-
-        // Renderizar los productos
+        section.appendChild(title);
+        
+        const grid = document.createElement('div');
+        grid.className = 'grid grid-cols-1 md:grid-cols-2 gap-4';
         subCategoryData.items.forEach(item => {
             const price = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(item.precio);
             const card = document.createElement('div');
@@ -121,37 +136,34 @@ function renderMenuItems(subCategories, container) {
                 ${item.descripcion ? `<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">${item.descripcion}</p>` : ''}
                 <p class="text-lightAccent dark:text-darkAccent font-bold text-base mt-2">${price}</p>
             `;
-            container.appendChild(card);
+            grid.appendChild(card);
         });
+        section.appendChild(grid);
+        container.appendChild(section);
+        menuObserver.observe(section);
     });
 }
 
-// --- MANEJO DE EVENTOS ---
-function setupEventListeners() {
-    document.getElementById('drink-btn').addEventListener('click', () => showSection('drink'));
-    document.getElementById('food-btn').addEventListener('click', () => showSection('food'));
-    
-    // Listener de scroll para resaltar subcategorías (opcional, más simple)
-    // El resaltado por click ya da buena respuesta visual.
-}
+// --- UTILIDADES ---
+function createIntersectionObserver() {
+    const observerOptions = {
+        rootMargin: '-150px 0px -50% 0px',
+        threshold: 0
+    };
 
-function showSection(sectionName) {
-    const drinkSection = document.getElementById('drink-section');
-    const foodSection = document.getElementById('food-section');
-    const drinkBtn = document.getElementById('drink-btn');
-    const foodBtn = document.getElementById('food-btn');
-
-    if (sectionName === 'drink') {
-        drinkSection.classList.remove('hidden');
-        foodSection.classList.add('hidden');
-        drinkBtn.classList.add('active');
-        foodBtn.classList.remove('active');
-    } else {
-        drinkSection.classList.add('hidden');
-        foodSection.classList.remove('hidden');
-        drinkBtn.classList.remove('active');
-        foodBtn.classList.add('active');
-    }
+    return new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            const targetId = entry.target.id;
+            const subCategoryBtn = document.querySelector(`.subcategory-btn[data-target="${targetId}"]`);
+            if (entry.isIntersecting) {
+                document.querySelectorAll('.subcategory-btn.active').forEach(b => b.classList.remove('active'));
+                if (subCategoryBtn) {
+                    subCategoryBtn.classList.add('active');
+                    subCategoryBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                }
+            }
+        });
+    }, observerOptions);
 }
 
 function setupTheme() {

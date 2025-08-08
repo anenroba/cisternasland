@@ -1,4 +1,4 @@
-/* Estilos para los botones de categoría principal y subcategoría */
+/* Estilo para el botón de categoría principal activo */
 .main-category-btn.active {
     @apply bg-lightAccent text-white;
 }
@@ -6,9 +6,20 @@
     @apply bg-darkAccent text-darkText;
 }
 
+/* Estilo para el botón de subcategoría activo (más destacado) */
 .subcategory-btn.active {
     @apply bg-lightAccent text-white ring-2 ring-offset-2 ring-lightAccent dark:ring-darkAccent dark:ring-offset-darkBg;
 }
 .dark .subcategory-btn.active {
     @apply bg-darkAccent text-darkText dark:ring-darkAccent;
+}
+
+/* Ocultar la barra de scroll horizontal en el nav de subcategorías */
+#sub-category-nav::-webkit-scrollbar {
+    display: none;
+}
+
+/* For Firefox */
+#sub-category-nav {
+  scrollbar-width: none;
 }
