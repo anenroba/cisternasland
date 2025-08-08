@@ -18,23 +18,16 @@
         <header class="sticky top-0 z-20 flex justify-end items-center py-4 px-4 bg-lightBg/80 dark:bg-darkBg/80 backdrop-blur-sm border-b border-lightBorder dark:border-darkBorder">
             <div class="flex items-center space-x-4">
                 <button id="theme-toggle" class="p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-lightAccent dark:focus:ring-darkAccent">
-                    <svg id="theme-light-icon" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707.707M6.343 6.343l-.707.707m12.728 0l-.707-.707M6.343 17.657l-.707.707M12 12a5 5 0 100-10 5 5 0 000 10z"/></svg>
-                    <svg id="theme-dark-icon" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9 9 0 008.354-5.646z" /></svg>
+                    <svg id="theme-light-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6 hidden">
+                        <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.106a.75.75 0 011.06 1.06l-1.591 1.59a.75.75 0 11-1.06-1.06l1.59-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.836 17.836a.75.75 0 01-1.06 1.06l-1.59-1.591a.75.75 0 111.06-1.06l1.59 1.591zM12 21.75a.75.75 0 01-.75-.75v-2.25a.75.75 0 011.5 0V21a.75.75 0 01-.75.75zM5.106 18.894a.75.75 0 01-1.06-1.06l1.591-1.59a.75.75 0 111.06 1.06l-1.59 1.59zM3 12a.75.75 0 01.75-.75h2.25a.75.75 0 010 1.5H3.75A.75.75 0 013 12zM6.106 5.106a.75.75 0 011.06 1.06l-1.59 1.591a.75.75 0 11-1.06-1.06l1.59-1.591z" />
+                    </svg>
+                    <svg id="theme-dark-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6 hidden">
+                        <path fill-rule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 004.463-.948a.75.75 0 01.819.162l.819.819a.75.75 0 01-.162.819A10.5 10.5 0 0118 18a10.5 10.5 0 01-10.5-10.5c0-1.141.23-2.243.654-3.262l.819-.819a.75.75 0 01.819-.162z" clip-rule="evenodd" />
+                    </svg>
                 </button>
             </div>
         </header>
 
         <nav id="main-category-nav" class="sticky top-[4.5rem] z-10 flex justify-around bg-lightCard dark:bg-darkCard rounded-b-xl p-2 shadow-sm">
             <button id="drink-btn" class="main-category-btn group-btn w-full py-2 px-6 rounded-lg text-lg font-semibold hover:bg-lightAccent hover:text-white dark:hover:bg-darkAccent transition-all duration-200 focus:outline-none">Drink 🍺</button>
-            <button id="food-btn" class="main-category-btn group-btn w-full py-2 px-6 rounded-lg text-lg font-semibold hover:bg-lightAccent hover:text-white dark:hover:bg-darkAccent transition-all duration-200 focus:outline-none">Food 🍕</button>
-        </nav>
-
-        <nav id="sub-category-nav" class="sticky top-[8.5rem] z-10 flex justify-center bg-lightCard/80 dark:bg-darkCard/80 backdrop-blur-sm rounded-xl p-2 shadow-sm mt-4 mb-6 overflow-x-auto"></nav>
-
-        <div id="menu-items-container" class="space-y-4 px-4 pb-20">
-            <p id="loading-message" class="text-center text-lg mt-8">Cargando menú...</p>
-        </div>
-    </div>
-
-</body>
-</html>
+            <button

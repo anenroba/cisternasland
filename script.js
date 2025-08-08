@@ -68,7 +68,7 @@ function renderUI(menuData) {
     const foodBtn = document.getElementById('food-btn');
 
     drinkBtn.addEventListener('click', () => handleGroupClick('Drink', menuData));
-    foodBtn.addEventListener('click', () => handleGroupClick('Food', menu.Data));
+    foodBtn.addEventListener('click', () => handleGroupClick('Food', menuData));
 
     handleGroupClick('Drink', menuData); // Cargar vista por defecto
 }
@@ -105,7 +105,6 @@ function renderSubCategoryButtons(subCategories) {
         button.dataset.subCategory = uniqueSubCategoryName;
 
         button.addEventListener('click', () => {
-            // MEJORA: Resaltar inmediatamente al hacer clic
             document.querySelectorAll('.sub-category-btn.active').forEach(b => b.classList.remove('active'));
             button.classList.add('active');
             
@@ -123,7 +122,7 @@ function renderSubCategoryButtons(subCategories) {
 
 function renderMenuItems(subCategories) {
     const menuItemsContainer = document.getElementById('menu-items-container');
-    menuObserver.disconnect(); // CORRECCIÓN: Detener observaciones anteriores
+    menuObserver.disconnect();
     menuItemsContainer.innerHTML = '';
 
     Object.entries(subCategories).forEach(([uniqueSubCategoryName, subCategoryData]) => {
@@ -155,14 +154,14 @@ function renderMenuItems(subCategories) {
 
         section.appendChild(itemsGrid);
         menuItemsContainer.appendChild(section);
-        menuObserver.observe(section); // CORRECCIÓN: Observar la nueva sección
+        menuObserver.observe(section);
     });
 }
 
 // --- UTILIDADES ---
 function createIntersectionObserver() {
     const observerOptions = {
-        rootMargin: '-40% 0px -55% 0px', // Ajustado para mejor detección
+        rootMargin: '-40% 0px -55% 0px',
         threshold: 0
     };
 
