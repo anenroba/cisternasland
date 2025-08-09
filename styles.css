@@ -29,10 +29,9 @@
 /* SUBCATEGORÍAS */
 #subcategorias-nav {
     position: sticky;
-    /* Ajustar para que no se superponga */
-    top: calc(56px + 48px); /* altura header + nav categorías */
+    top: 104px;
     background-color: #f3f4f6;
-    z-index: 40; /* menor que el header */
+    z-index: 50;
     border-bottom: 1px solid #e5e7eb;
 }
 .dark #subcategorias-nav {
@@ -93,8 +92,4 @@
 }
 .dark .producto .precio {
     color: #60a5fa;
-}
-/* NUEVO: descripción legible en modo oscuro */
-.dark .producto p {
-    color: #cbd5e1; /* gris claro legible */
 }
