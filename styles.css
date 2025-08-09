@@ -1,49 +1,59 @@
-/* Contenedor de subcategorías */
-.subcategories-container {
+/* Contenedor general */
+.category-tabs {
   display: flex;
-  flex-wrap: nowrap;              /* Evita que salten a otra línea */
-  overflow-x: auto;               /* Scroll horizontal */
-  gap: 10px;                      /* Separación uniforme entre botones */
-  padding: 8px 0;                  /* Espaciado vertical */
-  scrollbar-width: none;          /* Oculta scroll en Firefox */
-  -ms-overflow-style: none;       /* Oculta scroll en IE y Edge */
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #fff;
 }
 
-.subcategories-container::-webkit-scrollbar {
-  display: none;                  /* Oculta scroll en Chrome/Safari */
+/* Botones principales (Drink / Food) */
+.category-tabs button {
+  flex: 1;
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: 500;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  color: #374151;
+  transition: all 0.25s ease;
+}
+
+.category-tabs button.active {
+  background-color: #2563eb;
+  color: white;
+  font-weight: 600;
+}
+
+/* Lista de subcategorías */
+.subcategory-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
 }
 
 /* Botones de subcategoría */
-.subcategory-button {
-  flex: 0 0 auto;                  /* No se estira, mantiene tamaño */
-  padding: 8px 14px;
-  background-color: #f8f8f8;
-  border-radius: 20px;
-  white-space: nowrap;             /* No dividir el texto */
-  cursor: pointer;
+.subcategory-list button {
+  padding: 8px 16px;
+  background-color: #f3f4f6;
+  border: none;
+  border-radius: 9999px; /* forma pill */
   font-size: 14px;
-  color: #333;
-  transition: background-color 0.2s ease, color 0.2s ease;
-  border: 1px solid #ddd;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.25s ease;
 }
 
-/* Hover */
-.subcategory-button:hover {
-  background-color: #eaeaea;
+.subcategory-list button:hover {
+  background-color: #e5e7eb;
 }
 
-/* Botón activo */
-.subcategory-button.active {
-  background-color: #007aff;
-  color: #fff;
-  font-weight: bold;
-  border-color: #007aff;
-}
-
-/* Efecto para menú fijo en vertical pero desplazable horizontalmente */
-.subcategories-container.sticky {
-  position: sticky;
-  top: 0;
-  background-color: #fff;
-  z-index: 100;
+.subcategory-list button.active {
+  background-color: #2563eb; /* azul vivo */
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
 }
