@@ -5,36 +5,53 @@ const subCategories = {
 
 const productsData = {
     "Cervezas": [
-        { name: "IPA artesanal", price: "$5" },
-        { name: "Lager clásica", price: "$4" }
+        { name: "IPA artesanal", price: "$4.500" },
+        { name: "Lager clásica", price: "$3.800" },
+        { name: "Stout negra", price: "$4.200" },
+        { name: "Pale Ale", price: "$4.000" },
+        { name: "Cerveza sin alcohol", price: "$3.500" }
     ],
     "Vinos": [
-        { name: "Cabernet Sauvignon", price: "$8" },
-        { name: "Malbec", price: "$7" }
+        { name: "Cabernet Sauvignon", price: "$8.900" },
+        { name: "Malbec", price: "$8.500" },
+        { name: "Carmenere", price: "$9.200" },
+        { name: "Syrah", price: "$8.800" }
     ],
     "Refrescos": [
-        { name: "Cola", price: "$2" },
-        { name: "Limonada", price: "$3" }
+        { name: "Coca Cola", price: "$1.800" },
+        { name: "Limonada", price: "$2.200" },
+        { name: "Agua mineral", price: "$1.500" },
+        { name: "Jugo natural", price: "$2.500" }
     ],
     "Cócteles": [
-        { name: "Mojito", price: "$6" },
-        { name: "Margarita", price: "$6" }
+        { name: "Mojito", price: "$5.500" },
+        { name: "Margarita", price: "$5.800" },
+        { name: "Pisco Sour", price: "$4.900" },
+        { name: "Caipirinha", price: "$5.200" }
     ],
     "Entradas": [
-        { name: "Bruschetta", price: "$5" },
-        { name: "Empanadas", price: "$4" }
+        { name: "Bruschetta", price: "$4.000" },
+        { name: "Empanadas de pino", price: "$3.500" },
+        { name: "Tabla de quesos", price: "$6.500" },
+        { name: "Ceviche de reineta", price: "$7.200" }
     ],
     "Pastas": [
-        { name: "Spaghetti Bolognese", price: "$9" },
-        { name: "Penne Alfredo", price: "$8" }
+        { name: "Spaghetti Bolognese", price: "$8.500" },
+        { name: "Penne Alfredo", price: "$8.200" },
+        { name: "Lasagna de carne", price: "$9.000" },
+        { name: "Fettuccine pesto", price: "$8.300" }
     ],
     "Carnes": [
-        { name: "Bife de chorizo", price: "$12" },
-        { name: "Pollo grillado", price: "$10" }
+        { name: "Bife de chorizo", price: "$12.800" },
+        { name: "Pollo grillado", price: "$9.500" },
+        { name: "Costillas BBQ", price: "$11.900" },
+        { name: "Lomo vetado", price: "$13.500" }
     ],
     "Postres": [
-        { name: "Tiramisú", price: "$5" },
-        { name: "Helado artesanal", price: "$4" }
+        { name: "Tiramisú", price: "$4.500" },
+        { name: "Helado artesanal", price: "$3.800" },
+        { name: "Cheesecake", price: "$4.200" },
+        { name: "Brownie con helado", price: "$4.900" }
     ]
 };
 
