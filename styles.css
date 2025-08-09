@@ -1,29 +1,49 @@
-/* Botones principales */
-.main-category-btn {
-    @apply text-slate-500 dark:text-slate-400;
-}
-.main-category-btn.active {
-    @apply bg-lightAccent text-white shadow-md;
-}
-.dark .main-category-btn.active {
-    @apply bg-darkAccent text-darkText;
-}
-
-/* Botones subcategoría */
-.subcategory-btn {
-    @apply flex-shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium bg-transparent text-lightAccent dark:text-darkAccent whitespace-nowrap transition-all duration-200;
-}
-.subcategory-btn.active {
-    @apply bg-lightAccent text-white;
-}
-.dark .subcategory-btn.active {
-    @apply bg-darkAccent text-darkText;
+/* Contenedor de subcategorías */
+.subcategories-container {
+  display: flex;
+  flex-wrap: nowrap;              /* Evita que salten a otra línea */
+  overflow-x: auto;               /* Scroll horizontal */
+  gap: 10px;                      /* Separación uniforme entre botones */
+  padding: 8px 0;                  /* Espaciado vertical */
+  scrollbar-width: none;          /* Oculta scroll en Firefox */
+  -ms-overflow-style: none;       /* Oculta scroll en IE y Edge */
 }
 
-/* Scroll horizontal oculto */
-#sub-category-nav::-webkit-scrollbar {
-    display: none;
+.subcategories-container::-webkit-scrollbar {
+  display: none;                  /* Oculta scroll en Chrome/Safari */
 }
-#sub-category-nav {
-    scrollbar-width: none;
+
+/* Botones de subcategoría */
+.subcategory-button {
+  flex: 0 0 auto;                  /* No se estira, mantiene tamaño */
+  padding: 8px 14px;
+  background-color: #f8f8f8;
+  border-radius: 20px;
+  white-space: nowrap;             /* No dividir el texto */
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  border: 1px solid #ddd;
+}
+
+/* Hover */
+.subcategory-button:hover {
+  background-color: #eaeaea;
+}
+
+/* Botón activo */
+.subcategory-button.active {
+  background-color: #007aff;
+  color: #fff;
+  font-weight: bold;
+  border-color: #007aff;
+}
+
+/* Efecto para menú fijo en vertical pero desplazable horizontalmente */
+.subcategories-container.sticky {
+  position: sticky;
+  top: 0;
+  background-color: #fff;
+  z-index: 100;
 }
