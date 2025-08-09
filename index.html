@@ -3,183 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Menú</title>
+    <title>Menú Digital</title>
     <link rel="stylesheet" href="styles.css">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f9f9f9;
-        }
-
-        /* Contenedor principal de categorías */
-        .category-container {
-            display: flex;
-            justify-content: center;
-            gap: 5px;
-            padding: 10px;
-            background: #fff;
-            border-bottom: 1px solid #ddd;
-        }
-
-        /* Botones de categoría */
-        .category-button {
-            flex: 1;
-            padding: 10px 15px;
-            border-radius: 8px;
-            border: 2px solid transparent;
-            background: #f0f0f0;
-            color: #333;
-            font-weight: bold;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.2s ease-in-out;
-        }
-
-        .category-button:hover {
-            background: #e0e0e0;
-        }
-
-        .category-button.active {
-            background: #1e73ff;
-            color: #fff;
-            border-color: #1e73ff;
-        }
-
-        /* Contenedor de subcategorías con scroll horizontal */
-        .subcategory-container {
-            display: flex;
-            gap: 10px;
-            padding: 10px;
-            overflow-x: auto;
-            white-space: nowrap;
-            background: #fff;
-            border-bottom: 1px solid #ddd;
-        }
-
-        /* Ocultar scroll en algunos navegadores */
-        .subcategory-container::-webkit-scrollbar {
-            height: 6px;
-        }
-        .subcategory-container::-webkit-scrollbar-thumb {
-            background-color: #ccc;
-            border-radius: 4px;
-        }
-
-        /* Botones de subcategoría */
-        .subcategory-button {
-            display: inline-block;
-            padding: 8px 14px;
-            border-radius: 20px;
-            background: #f5f5f5;
-            border: 1px solid #ddd;
-            font-size: 14px;
-            white-space: nowrap;
-            cursor: pointer;
-            transition: all 0.2s ease-in-out;
-        }
-
-        .subcategory-button:hover {
-            background: #e6e6e6;
-        }
-
-        .subcategory-button.active {
-            background: #1e73ff;
-            color: #fff;
-            border-color: #1e73ff;
-        }
-
-        /* Lista de productos */
-        .product-list {
-            padding: 15px;
-        }
-
-        .product-item {
-            background: #fff;
-            padding: 12px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .product-name {
-            font-weight: bold;
-        }
-
-        .product-price {
-            color: #1e73ff;
-            font-weight: bold;
-        }
-    </style>
 </head>
 <body>
 
-    <!-- Categorías principales -->
-    <div class="category-container">
-        <button class="category-button active" onclick="setCategory('drink')">Drink 🍺</button>
-        <button class="category-button" onclick="setCategory('food')">Food 🍽️</button>
-    </div>
+    <!-- Menú principal -->
+    <header class="menu-principal">
+        <div class="categorias">
+            <button class="categoria-btn" data-categoria="drink">Drink 🍺</button>
+            <button class="categoria-btn" data-categoria="food">Food 🍽️</button>
+        </div>
+    </header>
 
-    <!-- Subcategorías -->
-    <div class="subcategory-container" id="subcategory-container">
-        <!-- Botones generados dinámicamente -->
-    </div>
+    <!-- Menú de subcategorías (dinámico) -->
+    <nav class="menu-subcategorias" id="subcategorias-container">
+        <!-- Aquí se insertan dinámicamente las subcategorías -->
+    </nav>
 
     <!-- Lista de productos -->
-    <div class="product-list" id="product-list">
-        <!-- Productos generados dinámicamente -->
-    </div>
+    <main id="productos-container">
+        <!-- Aquí se insertan dinámicamente los productos -->
+    </main>
 
-    <script>
-        const categories = {
-            drink: [
-                "Espumante", "Gin", "Pisco", "Ron", "Vodka", "Whisky", "Schop (500cc)",
-                "Sin alcohol", "Clásica - Mojitos", "Clásica - Sours", "Clásica - Spritz",
-                "Clásica - Tequila", "Clásicos de Siempre", "Coctelería de Autor", "Pisco",
-                "Whisky", "Licores", "Bebidas", "Gin (Sin alcohol - Tanqueray 0.0)",
-                "Jugos Naturales", "Limonadas", "Mocktails", "Mojitos", "Red Bull",
-                "Tequila", "Botella", "Botellas", "Copa", "Tintos & Blancos",
-                "Blend", "Bourbon", "Irish", "Single Malt", "Tennessee Whisky"
-            ],
-            food: [
-                "Entradas", "Tablas", "Hamburguesas", "Pizzas", "Postres", "Platos principales"
-            ]
-        };
-
-        let currentCategory = 'drink';
-
-        function setCategory(category) {
-            currentCategory = category;
-            document.querySelectorAll('.category-button').forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`.category-button[onclick="setCategory('${category}')"]`).classList.add('active');
-            renderSubcategories();
-        }
-
-        function renderSubcategories() {
-            const container = document.getElementById('subcategory-container');
-            container.innerHTML = '';
-            categories[currentCategory].forEach((subcat, index) => {
-                const btn = document.createElement('button');
-                btn.className = 'subcategory-button';
-                btn.textContent = subcat;
-                btn.onclick = () => setActiveSubcategory(btn);
-                if (index === 0) btn.classList.add('active');
-                container.appendChild(btn);
-            });
-        }
-
-        function setActiveSubcategory(button) {
-            document.querySelectorAll('.subcategory-button').forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
-        }
-
-        // Inicializar
-        renderSubcategories();
-    </script>
-
+    <script src="script.js"></script>
 </body>
 </html>
