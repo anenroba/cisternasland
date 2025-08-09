@@ -128,13 +128,19 @@ function renderMenuItems(subCategories) {
         subCategoryData.items.forEach(item => {
             const price = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(item.precio);
             const card = document.createElement('div');
-            card.className = 'bg-white dark:bg-darkCard rounded-lg shadow p-4 border border-lightBorder dark:border-darkBorder';
+            card.className = 'bg-white dark:bg-darkCard rounded-lg shadow-md p-4 border border-lightBorder dark:border-darkBorder';
             
-            // CORRECCIÓN: Se vuelve a usar escapeHtml para seguridad
+            // CORRECCIÓN: Se restaura el diseño de producto a 2 columnas (nombre/desc a la izq, precio a la der)
             card.innerHTML = `
-                <h3 class="text-lg font-semibold text-lightText dark:text-darkText">${escapeHtml(item.nombre)}</h3>
-                ${item.descripcion ? `<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">${escapeHtml(item.descripcion)}</p>` : ''}
-                <p class="font-bold text-base mt-2 text-lightAccent dark:text-darkAccent">${price}</p>
+                <div class="flex justify-between items-start gap-4">
+                    <div class="flex-grow">
+                        <h3 class="font-semibold text-lightText dark:text-darkText">${escapeHtml(item.nombre)}</h3>
+                        ${item.descripcion ? `<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">${escapeHtml(item.descripcion)}</p>` : ''}
+                    </div>
+                    <div class="flex-shrink-0">
+                        <p class="font-bold text-lightAccent dark:text-darkAccent">${price}</p>
+                    </div>
+                </div>
             `;
             grid.appendChild(card);
         });
@@ -145,12 +151,8 @@ function renderMenuItems(subCategories) {
 }
 
 // --- UTILIDADES ---
-
-// CORRECCIÓN: Se reintroduce la función de seguridad
 function escapeHtml(unsafe) {
-    if (typeof unsafe !== 'string') {
-        return '';
-    }
+    if (typeof unsafe !== 'string') return '';
     return unsafe
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
@@ -187,13 +189,11 @@ function setupTableNumber() {
         const urlParams = new URLSearchParams(window.location.search);
         const tableNumber = urlParams.get('mesa');
         if (tableNumber && tableNumberSpan) {
-            tableNumberSpan.textContent = escapeHtml(tableNumber); // También se escapa por seguridad
+            tableNumberSpan.textContent = escapeHtml(tableNumber);
         }
     } catch (error) {
         console.warn("No se pudo leer el número de mesa de la URL.");
-        if (tableNumberSpan) {
-            tableNumberSpan.textContent = '--';
-        }
+        if (tableNumberSpan) tableNumberSpan.textContent = '--';
     }
 }
 
