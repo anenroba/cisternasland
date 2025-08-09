@@ -1,6 +1,6 @@
 /* Estilo para los botones de categoría principal */
 .main-category-btn {
-    @apply bg-lightCard dark:bg-darkCard border border-lightBorder dark:border-darkBorder shadow-sm hover:bg-lightAccent hover:text-white dark:hover:bg-darkAccent transition-all duration-200;
+    @apply bg-white dark:bg-darkCard border border-lightBorder dark:border-darkBorder shadow-sm hover:shadow-md hover:bg-lightAccent hover:text-white dark:hover:bg-darkAccent transition-all duration-200;
 }
 .main-category-btn.active {
     @apply bg-lightAccent text-white border-transparent shadow-inner;
@@ -11,8 +11,7 @@
 
 /* Estilo base para los botones de subcategoría */
 .subcategory-btn {
-    /* CORRECCIONES: Añadido whitespace-nowrap y shadow-sm */
-    @apply flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium bg-lightCard dark:bg-darkCard border border-lightBorder dark:border-darkBorder hover:bg-lightAccent hover:text-white dark:hover:bg-darkAccent transition-all duration-200 shadow-sm whitespace-nowrap;
+    @apply flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium bg-white dark:bg-darkCard border border-lightBorder dark:border-darkBorder hover:bg-lightAccent hover:text-white dark:hover:bg-darkAccent transition-all duration-200 shadow-sm whitespace-nowrap;
 }
 
 /* Estilo para el botón de subcategoría activo */

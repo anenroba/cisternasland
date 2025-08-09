@@ -4,7 +4,7 @@ const DRINK_CATEGORIES = ["Botellas", "Cervezas", "Coctelería", "Degustaciones"
 const FOOD_CATEGORIES = ["Para comenzar", "Para compartir", "Pizzas", "Sushi Especial", "Dulce Final"];
 
 // --- VARIABLES GLOBALES ---
-let menuObserver; // Observer para resaltar subcategoría activa en scroll
+let menuObserver;
 
 // --- INICIALIZACIÓN ---
 document.addEventListener('DOMContentLoaded', main);
@@ -20,7 +20,7 @@ async function main() {
         const menuData = transformData(rawData);
         
         setupEventListeners(menuData);
-        handleGroupClick('Drink', menuData); // Cargar "Drink" por defecto
+        handleGroupClick('Drink', menuData);
 
     } catch (error) {
         console.error("Error fatal al cargar el menú:", error);
@@ -92,12 +92,14 @@ function renderSubCategoryButtons(subCategories) {
         button.dataset.target = `section-${subCategoryName.replace(/\s+/g, '-')}`;
 
         button.addEventListener('click', (e) => {
+            // Lógica de resaltado inmediato al hacer clic
+            container.querySelectorAll('.subcategory-btn.active').forEach(btn => btn.classList.remove('active'));
+            e.currentTarget.classList.add('active');
+
             const targetElement = document.getElementById(e.currentTarget.dataset.target);
             if(targetElement) {
-                const offset = 150; 
-                const bodyRect = document.body.getBoundingClientRect().top;
-                const elementRect = targetElement.getBoundingClientRect().top;
-                const elementPosition = elementRect - bodyRect;
+                const offset = 160; // Ajuste para los encabezados fijos
+                const elementPosition = targetElement.getBoundingClientRect().top + window.pageYOffset;
                 const offsetPosition = elementPosition - offset;
 
                 window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
@@ -123,15 +125,16 @@ function renderMenuItems(subCategories) {
         section.appendChild(title);
         
         const grid = document.createElement('div');
-        grid.className = 'grid grid-cols-1 md:grid-cols-2 gap-4';
+        // CORRECCIÓN: Productos siempre en una columna
+        grid.className = 'grid grid-cols-1 gap-4';
         subCategoryData.items.forEach(item => {
             const price = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(item.precio);
             const card = document.createElement('div');
-            card.className = 'bg-lightCard dark:bg-darkCard rounded-lg shadow p-4 border border-lightBorder dark:border-darkBorder';
+            card.className = 'bg-white dark:bg-darkCard rounded-lg shadow p-4 border border-lightBorder dark:border-darkBorder';
             card.innerHTML = `
                 <h3 class="text-lg font-semibold text-lightText dark:text-darkText">${item.nombre}</h3>
                 ${item.descripcion ? `<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">${item.descripcion}</p>` : ''}
-                <p class="text-lightAccent dark:text-darkAccent font-bold text-base mt-2">${price}</p>
+                <p class="font-bold text-base mt-2 text-lightAccent dark:text-darkAccent">${price}</p>
             `;
             grid.appendChild(card);
         });
@@ -144,7 +147,7 @@ function renderMenuItems(subCategories) {
 // --- UTILIDADES ---
 function createIntersectionObserver() {
     const observerOptions = {
-        rootMargin: '-150px 0px -50% 0px',
+        rootMargin: '-160px 0px -50% 0px', // Ajustado para mayor precisión con los navs fijos
         threshold: 0
     };
 
