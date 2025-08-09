@@ -1,38 +1,52 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cisternas 2039</title>
-  <link rel="stylesheet" href="styles.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menú - Cisternas 2039</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <!-- Barra superior -->
-  <header class="top-bar">
-    <button id="dark-mode-toggle" class="dark-mode-btn">🌙</button>
-    <h1 class="title">Cisternas 2039</h1>
-    <div class="mesa">Mesa <span id="mesa-numero">--</span></div>
-  </header>
 
-  <!-- Menú categorías -->
-  <div class="category-menu">
-    <button class="category-btn active" data-category="drink">Drink</button>
-    <button class="category-btn" data-category="food">Food</button>
-  </div>
+    <div class="menu-container">
+        <!-- Cabecera Fija -->
+        <header class="header">
+            <div class="header-left">
+                <button id="theme-toggle" class="theme-toggle-btn" aria-label="Cambiar modo de color">
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                </button>
+            </div>
+            <div class="header-center">
+                <h1>Cisternas 2039</h1>
+            </div>
+            <div class="header-right">
+                <span id="table-info">Mesa: --</span>
+            </div>
+        </header>
 
-  <!-- Menú subcategorías -->
-  <div class="subcategory-menu" id="subcategory-menu">
-    <!-- Subcategorías para "Drink" -->
-    <button class="subcategory-btn active" data-subcategory="cervezas">Cervezas</button>
-    <button class="subcategory-btn" data-subcategory="vinos">Vinos</button>
-    <button class="subcategory-btn" data-subcategory="tragos">Tragos</button>
-  </div>
+        <!-- Menú de Navegación Fijo -->
+        <nav class="navigation-menu">
+            <div id="main-categories" class="main-categories">
+                <button class="category-btn" data-category="food">Food</button>
+                <button class="category-btn" data-category="drinks">Drinks</button>
+            </div>
+            <div id="sub-categories-wrapper" class="sub-categories-wrapper">
+                <div id="sub-categories" class="sub-categories">
+                    <!-- Las subcategorías se insertarán aquí con JS -->
+                </div>
+            </div>
+        </nav>
 
-  <!-- Contenedor de productos -->
-  <div class="product-list" id="product-list">
-    <!-- Productos generados dinámicamente por JS -->
-  </div>
+        <!-- Lista de Productos (Scrollable) -->
+        <main id="product-list" class="product-list">
+            <!-- Los productos se insertarán aquí con JS -->
+        </main>
+    </div>
 
-  <script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
