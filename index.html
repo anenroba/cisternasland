@@ -6,6 +6,7 @@
     <title>Menú Interactivo - Cisternas</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -13,555 +14,98 @@
             darkMode: 'class',
             theme: {
                 extend: {
-                    fontFamily: { 'inter': ['Inter', 'sans-serif'] },
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif'],
+                    },
                     colors: {
-                        lightBg: '#f8fafc', lightText: '#1e293b', lightCard: '#ffffff',
-                        lightBorder: '#e2e8f0', lightAccent: '#3b82f6',
-                        darkBg: '#0f172a', darkText: '#f1f5f9', darkCard: '#1e293b',
-                        darkBorder: '#334155', darkAccent: '#60a5fa'
+                        lightBg: '#f8fafc',
+                        lightText: '#1e293b',
+                        lightCard: '#ffffff',
+                        lightBorder: '#e2e8f0',
+                        lightAccent: '#3b82f6',
+                        darkBg: '#0f172a',
+                        darkText: '#f1f5f9',
+                        darkCard: '#1e293b',
+                        darkBorder: '#334155',
+                        darkAccent: '#60a5fa'
                     }
                 }
             }
         }
     </script>
-    
-    <style>
-        /* Variables CSS personalizadas */
-        :root {
-            --light-bg: #f8fafc;
-            --light-text: #1e293b;
-            --light-card: #ffffff;
-            --light-border: #e2e8f0;
-            --light-accent: #3b82f6;
-            --dark-bg: #0f172a;
-            --dark-text: #f1f5f9;
-            --dark-card: #1e293b;
-            --dark-border: #334155;
-            --dark-accent: #60a5fa;
-        }
-
-        /* Estilo para los botones de categoría principal */
-        .main-category-btn {
-            background-color: var(--light-card);
-            border: 1px solid var(--light-border);
-            transition: all 0.3s ease;
-            transform: scale(1);
-        }
-        
-        .main-category-btn:hover {
-            background-color: var(--light-accent);
-            color: white;
-            transform: scale(1.05);
-        }
-        
-        .main-category-btn.active {
-            background-color: var(--light-accent);
-            color: white;
-            border-color: transparent;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
-
-        /* Dark mode para botones principales */
-        .dark .main-category-btn {
-            background-color: var(--dark-card);
-            border-color: var(--dark-border);
-        }
-        
-        .dark .main-category-btn:hover {
-            background-color: var(--dark-accent);
-        }
-        
-        .dark .main-category-btn.active {
-            background-color: var(--dark-accent);
-            color: var(--dark-text);
-        }
-
-        /* Estilo base para los botones de subcategoría */
-        .subcategory-btn {
-            flex-shrink: 0;
-            padding: 0.5rem 1rem;
-            border-radius: 9999px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            background-color: var(--light-card);
-            border: 1px solid var(--light-border);
-            transition: all 0.2s ease;
-            transform: scale(1);
-            cursor: pointer;
-        }
-        
-        .subcategory-btn:hover {
-            background-color: var(--light-accent);
-            color: white;
-            transform: scale(1.05);
-        }
-
-        /* Estilo para el botón de subcategoría activo */
-        .subcategory-btn.active {
-            background-color: var(--light-accent);
-            color: white;
-            border-color: transparent;
-            box-shadow: 0 0 0 2px var(--light-accent), 0 0 0 4px var(--light-bg);
-        }
-
-        /* Dark mode para botones de subcategoría */
-        .dark .subcategory-btn {
-            background-color: var(--dark-card);
-            border-color: var(--dark-border);
-        }
-        
-        .dark .subcategory-btn:hover {
-            background-color: var(--dark-accent);
-        }
-        
-        .dark .subcategory-btn.active {
-            background-color: var(--dark-accent);
-            color: var(--dark-text);
-            box-shadow: 0 0 0 2px var(--dark-accent), 0 0 0 4px var(--dark-bg);
-        }
-
-        /* Ocultar la barra de scroll horizontal en el nav de subcategorías */
-        #sub-category-nav::-webkit-scrollbar {
-            display: none;
-        }
-        #sub-category-nav {
-            scrollbar-width: none;
-        }
-
-        /* Animaciones para las cartas */
-        .menu-card {
-            transform: scale(1);
-            transition: all 0.3s ease;
-        }
-        
-        .menu-card:hover {
-            transform: scale(1.02);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-
-        /* Loading spinner mejorado */
-        .loading-spinner {
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        /* Efectos de entrada */
-        .fade-in {
-            animation: fadeIn 0.5s ease-in;
-        }
-        @keyframes fadeIn {
-            from { 
-                opacity: 0; 
-                transform: translateY(20px); 
-            }
-            to { 
-                opacity: 1; 
-                transform: translateY(0); 
-            }
-        }
-
-        /* Mejoras adicionales */
-        .gradient-text {
-            background: linear-gradient(135deg, var(--light-accent), #8b5cf6);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .dark .gradient-text {
-            background: linear-gradient(135deg, var(--dark-accent), #a78bfa);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-    </style>
+    <script src="script.js" defer></script>
 </head>
-<body class="font-inter antialiased transition-colors duration-300 bg-lightBg text-lightText dark:bg-darkBg dark:text-darkText">
+<body class="font-inter antialiased transition-colors duration-300
+             bg-lightBg text-lightText dark:bg-darkBg dark:text-darkText">
 
     <div class="container mx-auto max-w-2xl">
-        <header class="sticky top-0 z-30 flex justify-between items-center py-4 px-4 bg-lightBg/90 dark:bg-darkBg/90 backdrop-blur-md border-b border-lightBorder dark:border-darkBorder shadow-sm">
-            <div>
-                <button id="theme-toggle" class="p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-lightAccent dark:focus:ring-darkAccent hover:bg-lightCard dark:hover:bg-darkCard transition-all duration-200">
-                    <svg id="theme-light-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6 hidden"><path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.106a.75.75 0 011.06 1.06l-1.591 1.59a.75.75 0 11-1.06-1.06l1.59-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.836 17.836a.75.75 0 01-1.06 1.06l-1.59-1.591a.75.75 0 111.06-1.06l1.59 1.591zM12 21.75a.75.75 0 01-.75-.75v-2.25a.75.75 0 011.5 0V21a.75.75 0 01-.75.75zM5.106 18.894a.75.75 0 01-1.06-1.06l1.591-1.59a.75.75 0 111.06 1.06l-1.59 1.59zM3 12a.75.75 0 01.75-.75h2.25a.75.75 0 010 1.5H3.75A.75.75 0 013 12zM6.106 5.106a.75.75 0 011.06 1.06l-1.59 1.591a.75.75 0 11-1.06-1.06l1.59-1.591z" /></svg>
-                    <svg id="theme-dark-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6 hidden"><path fill-rule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 004.463-.948a.75.75 0 01.819.162l.819.819a.75.75 0 01-.162.819A10.5 10.5 0 0118 18a10.5 10.5 0 01-10.5-10.5c0-1.141.23-2.243.654-3.262l.819-.819a.75.75 0 01.819-.162z" clip-rule="evenodd" /></svg>
+        <!-- Header with theme toggle -->
+        <header class="sticky top-0 z-20 flex justify-end items-center py-4 px-4 bg-lightBg/80 dark:bg-darkBg/80 backdrop-blur-sm border-b border-lightBorder dark:border-darkBorder">
+            <div class="flex items-center space-x-4">
+                <button id="theme-toggle" class="p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-lightAccent dark:focus:ring-darkAccent">
+                    <svg id="theme-light-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6 hidden">
+                        <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.106a.75.75 0 011.06 1.06l-1.591 1.59a.75.75 0 11-1.06-1.06l1.59-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.836 17.836a.75.75 0 01-1.06 1.06l-1.59-1.591a.75.75 0 111.06-1.06l1.59 1.591zM12 21.75a.75.75 0 01-.75-.75v-2.25a.75.75 0 011.5 0V21a.75.75 0 01-.75.75zM5.106 18.894a.75.75 0 01-1.06-1.06l1.591-1.59a.75.75 0 111.06 1.06l-1.59 1.59zM3 12a.75.75 0 01.75-.75h2.25a.75.75 0 010 1.5H3.75A.75.75 0 013 12zM6.106 5.106a.75.75 0 011.06 1.06l-1.59 1.591a.75.75 0 11-1.06-1.06l1.59-1.591z" />
+                    </svg>
+                    <svg id="theme-dark-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6 hidden">
+                        <path fill-rule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 004.463-.948a.75.75 0 01.819.162l.819.819a.75.75 0 01-.162.819A10.5 10.5 0 0118 18a10.5 10.5 0 01-10.5-10.5c0-1.141.23-2.243.654-3.262l.819-.819a.75.75 0 01.819-.162z" clip-rule="evenodd" />
+                    </svg>
                 </button>
-            </div>
-            
-            <div class="text-center">
-                <h1 class="font-bold text-lg gradient-text">
-                    Cisternas-2039
-                </h1>
-            </div>
-
-            <div class="flex items-center gap-x-2">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-7 h-7 text-lightAccent dark:text-darkAccent">
-                    <path d="M2 3.75A.75.75 0 012.75 3h18.5a.75.75 0 01.75.75v16.5a.75.75 0 01-.75.75H2.75a.75.75 0 01-.75-.75V3.75zM12 11.25a.75.75 0 01.75-.75h6a.75.75 0 01.75.75v1.5a.75.75 0 01-.75.75h-6a.75.75 0 01-.75-.75v-1.5zM12.75 7.5a.75.75 0 00-1.5 0v6a.75.75 0 001.5 0v-6zM5.25 11.25a.75.75 0 01.75-.75h3a.75.75 0 01.75.75v3a.75.75 0 01-.75.75h-3a.75.75 0 01-.75-.75v-3z" />
-                </svg>
-                <span id="table-number" class="font-bold text-lg text-lightAccent dark:text-darkAccent">--</span>
             </div>
         </header>
 
-        <nav class="sticky top-[4.5rem] z-20 flex justify-around bg-lightCard/90 dark:bg-darkCard/90 backdrop-blur-md rounded-b-xl p-2 shadow-lg gap-x-2">
-            <button id="drink-btn" class="main-category-btn w-full py-3 px-6 rounded-xl text-lg font-semibold">🍺 Bebidas</button>
-            <button id="food-btn" class="main-category-btn w-full py-3 px-6 rounded-xl text-lg font-semibold">🍴 Comidas</button>
-        </nav>
-        
-        <nav id="sub-category-nav" class="sticky top-[8.2rem] z-10 bg-lightBg/90 dark:bg-darkBg/90 backdrop-blur-md py-2 overflow-x-auto">
-            <div id="sub-category-container" class="flex flex-nowrap gap-3 px-4">
-            </div>
+        <!-- Main category navigation -->
+        <nav id="main-category-nav" class="sticky top-[4.5rem] z-10 flex justify-around bg-lightCard dark:bg-darkCard rounded-b-xl p-2 shadow-sm">
+            <button id="drink-btn" class="main-category-btn w-full py-2 px-6 rounded-lg text-lg font-semibold hover:bg-lightAccent hover:text-white dark:hover:bg-darkAccent transition-all duration-200 focus:outline-none">Drink 🍺</button>
+            <button id="food-btn" class="main-category-btn w-full py-2 px-6 rounded-lg text-lg font-semibold hover:bg-lightAccent hover:text-white dark:hover:bg-darkAccent transition-all duration-200 focus:outline-none">Food 🍴</button>
         </nav>
 
-        <main id="menu-items-container" class="px-4 py-6 fade-in">
-        </main>
-
-        <!-- Error state -->
-        <div id="error-message" class="hidden px-4 py-6 text-center">
-            <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
-                <svg class="mx-auto h-12 w-12 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <h3 class="mt-2 text-sm font-medium text-red-800 dark:text-red-200">Error al cargar el menú</h3>
-                <p class="mt-1 text-sm text-red-600 dark:text-red-400">No se pudo conectar con el servidor. Por favor, intenta nuevamente.</p>
-                <button id="retry-btn" class="mt-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors duration-200">
-                    Reintentar
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <div id="loading" class="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-50 hidden">
-        <div class="bg-lightCard dark:bg-darkCard p-8 rounded-xl shadow-2xl max-w-sm mx-4">
-            <div class="loading-spinner rounded-full h-12 w-12 border-4 border-lightAccent/20 border-t-lightAccent dark:border-darkAccent/20 dark:border-t-darkAccent mx-auto"></div>
-            <p class="mt-4 text-center text-lightText dark:text-darkText font-medium">Cargando menú...</p>
-        </div>
-    </div>
-
-    <script>
-        // --- CONFIGURACIÓN ---
-        const API_URL = 'https://api-swa.onrender.com/api/carta';
-        const DRINK_CATEGORIES = ["Botellas", "Cervezas", "Coctelería", "Degustaciones", "Gin", "Licores", "Pisco", "Ron", "Sin alcohol", "Tequila", "Vinos & Espumantes", "Vodka", "Whisky"];
-        const FOOD_CATEGORIES = ["Para comenzar", "Para compartir", "Pizzas", "Sushi Especial", "Dulce Final"];
-
-        // --- VARIABLES GLOBALES ---
-        let menuObserver;
-
-        // --- INICIALIZACIÓN ---
-        document.addEventListener('DOMContentLoaded', main);
-
-        async function main() {
-            setupTheme();
-            menuObserver = createIntersectionObserver();
-            
-            try {
-                await loadMenu();
-            } catch (error) {
-                showError();
-            }
-        }
-
-        async function loadMenu() {
-            showLoading(true);
-            
-            try {
-                const rawData = await fetchData();
-                const menuData = transformData(rawData);
-                
-                setupEventListeners(menuData);
-                handleGroupClick('Drink', menuData);
-                hideError();
-                
-            } catch (error) {
-                console.error("Error fatal al cargar el menú:", error);
-                throw error;
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        function showLoading(show) {
-            const loading = document.getElementById('loading');
-            loading.classList.toggle('hidden', !show);
-        }
-
-        function showError() {
-            document.getElementById('menu-items-container').classList.add('hidden');
-            document.getElementById('error-message').classList.remove('hidden');
-            
-            document.getElementById('retry-btn').onclick = () => {
-                hideError();
-                loadMenu();
-            };
-        }
-
-        function hideError() {
-            document.getElementById('menu-items-container').classList.remove('hidden');
-            document.getElementById('error-message').classList.add('hidden');
-        }
-
-        // --- MANEJO DE DATOS ---
-        async function fetchData() {
-            // Intentar obtener datos del cache primero (válido por 1 hora)
-            const cached = getCachedData();
-            if (cached) return cached;
-            
-            const response = await fetch(API_URL, {
-                headers: {
-                    'Accept': 'application/json',
-                    'Cache-Control': 'no-cache'
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error(`Error ${response.status}: ${response.statusText}`);
-            }
-            
-            const data = await response.json();
-            setCachedData(data);
-            return data;
-        }
-
-        function getCachedData() {
-            try {
-                const cached = JSON.parse(sessionStorage.getItem('menuData') || 'null');
-                if (cached && cached.timestamp && Date.now() - cached.timestamp < 3600000) {
-                    return cached.data;
-                }
-            } catch (e) {
-                console.warn('Error parsing cached data:', e);
-            }
-            return null;
-        }
-
-        function setCachedData(data) {
-            try {
-                const cacheObject = {
-                    data: data,
-                    timestamp: Date.now()
-                };
-                sessionStorage.setItem('menuData', JSON.stringify(cacheObject));
-            } catch (e) {
-                console.warn('Error caching data:', e);
-            }
-        }
-
-        function transformData(apiData) {
-            const structuredMenu = {};
-            for (const item of apiData) {
-                if (!structuredMenu[item.categoria]) structuredMenu[item.categoria] = {};
-                structuredMenu[item.categoria][item.subcategoria] = { 
-                    name: item.subcategoria, 
-                    items: item.productos || []
-                };
-            }
-            return structuredMenu;
-        }
-
-        function getConsolidatedSubcategories(groupName, allMenuData) {
-            const targetCategories = groupName === 'Drink' ? DRINK_CATEGORIES : FOOD_CATEGORIES;
-            const consolidated = {};
-            for (const category of targetCategories) {
-                if (allMenuData[category]) {
-                    Object.assign(consolidated, allMenuData[category]);
-                }
-            }
-            return consolidated;
-        }
-
-        // --- MANEJO DE EVENTOS ---
-        function setupEventListeners(menuData) {
-            document.getElementById('drink-btn').addEventListener('click', () => handleGroupClick('Drink', menuData));
-            document.getElementById('food-btn').addEventListener('click', () => handleGroupClick('Food', menuData));
-        }
-
-        function handleGroupClick(groupName, allMenuData) {
-            document.querySelectorAll('.main-category-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.id === `${groupName.toLowerCase()}-btn`);
-            });
-            
-            const subCategories = getConsolidatedSubcategories(groupName, allMenuData);
-            renderSubCategoryButtons(subCategories);
-            renderMenuItems(subCategories);
-            
-            const firstSubCategoryBtn = document.querySelector('.subcategory-btn');
-            if (firstSubCategoryBtn) firstSubCategoryBtn.classList.add('active');
-        }
-
-        // --- RENDERIZADO ---
-        function renderSubCategoryButtons(subCategories) {
-            const container = document.getElementById('sub-category-container');
-            container.innerHTML = '';
-            
-            Object.entries(subCategories).forEach(([subCategoryName, subCategoryData]) => {
-                const button = document.createElement('button');
-                button.className = 'subcategory-btn'; 
-                button.textContent = subCategoryData.name;
-                button.dataset.target = `section-${subCategoryName.replace(/\s+/g, '-')}`;
-
-                button.addEventListener('click', (e) => {
-                    scrollToSection(e.currentTarget.dataset.target);
-                    updateActiveSubCategory(e.currentTarget);
-                });
-                
-                container.appendChild(button);
-            });
-        }
-
-        function scrollToSection(targetId) {
-            const targetElement = document.getElementById(targetId);
-            if (targetElement) {
-                const offset = 150;
-                const elementPosition = targetElement.getBoundingClientRect().top + window.pageYOffset;
-                const offsetPosition = elementPosition - offset;
-
-                window.scrollTo({ 
-                    top: offsetPosition, 
-                    behavior: 'smooth' 
-                });
-            }
-        }
-
-        function updateActiveSubCategory(activeBtn) {
-            document.querySelectorAll('.subcategory-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            activeBtn.classList.add('active');
-        }
-
-        function renderMenuItems(subCategories) {
-            const container = document.getElementById('menu-items-container');
-            menuObserver.disconnect();
-            container.innerHTML = '';
-
-            Object.entries(subCategories).forEach(([subCategoryName, subCategoryData]) => {
-                const section = createSection(subCategoryName, subCategoryData);
-                container.appendChild(section);
-                menuObserver.observe(section);
-            });
-
-            // Añadir clase fade-in después de un pequeño delay
-            setTimeout(() => {
-                container.classList.add('fade-in');
-            }, 50);
-        }
-
-        function createSection(subCategoryName, subCategoryData) {
-            const section = document.createElement('section');
-            section.id = `section-${subCategoryName.replace(/\s+/g, '-')}`;
-            section.className = 'scroll-mt-40 pt-6';
-
-            const title = document.createElement('h2');
-            title.className = 'text-2xl font-bold mb-6 text-lightText dark:text-darkText';
-            title.textContent = subCategoryData.name;
-            section.appendChild(title);
-            
-            const grid = document.createElement('div');
-            grid.className = 'grid grid-cols-1 gap-4 mb-8';
-            
-            subCategoryData.items.forEach(item => {
-                const card = createMenuItemCard(item);
-                grid.appendChild(card);
-            });
-            
-            section.appendChild(grid);
-            return section;
-        }
-
-        function createMenuItemCard(item) {
-            const price = formatPrice(item.precio);
-            const card = document.createElement('div');
-            card.className = 'menu-card bg-lightCard dark:bg-darkCard rounded-xl shadow-md p-5 border border-lightBorder dark:border-darkBorder';
-            
-            card.innerHTML = `
-                <div class="flex justify-between items-start">
-                    <div class="flex-1 pr-4">
-                        <h3 class="text-lg font-semibold text-lightText dark:text-darkText mb-2">${escapeHtml(item.nombre)}</h3>
-                        ${item.descripcion ? `<p class="text-sm text-slate-600 dark:text-slate-300 mb-3 leading-relaxed">${escapeHtml(item.descripcion)}</p>` : ''}
+        <!-- Main content container -->
+        <main class="px-4 py-6">
+            <!-- Drink section -->
+            <div id="drink-section" class="category-section">
+                <!-- Drink subcategory navigation -->
+                <nav id="drink-nav" class="mb-6">
+                    <div class="flex flex-wrap gap-2 justify-center">
+                        <button class="subcategory-btn px-4 py-2 rounded-full text-sm font-medium bg-lightCard dark:bg-darkCard hover:bg-lightAccent hover:text-white dark:hover:bg-darkAccent transition-all duration-200" data-category="beer">Cerveza</button>
+                        <button class="subcategory-btn px-4 py-2 rounded-full text-sm font-medium bg-lightCard dark:bg-darkCard hover:bg-lightAccent hover:text-white dark:hover:bg-darkAccent transition-all duration-200" data-category="wine">Vino</button>
+                        <button class="subcategory-btn px-4 py-2 rounded-full text-sm font-medium bg-lightCard dark:bg-darkCard hover:bg-lightAccent hover:text-white dark:hover:bg-darkAccent transition-all duration-200" data-category="cocktail">Cóctel</button>
+                        <button class="subcategory-btn px-4 py-2 rounded-full text-sm font-medium bg-lightCard dark:bg-darkCard hover:bg-lightAccent hover:text-white dark:hover:bg-darkAccent transition-all duration-200" data-category="soft-drink">Refrescos</button>
                     </div>
-                    <div class="text-right">
-                        <p class="text-lightAccent dark:text-darkAccent font-bold text-lg">${price}</p>
-                    </div>
+                </nav>
+
+                <!-- Drink menu items container -->
+                <div id="drink-menu" class="menu-items grid gap-4">
+                    <!-- Menu items will be populated by JavaScript -->
                 </div>
-            `;
-            
-            return card;
-        }
+            </div>
 
-        function formatPrice(precio) {
-            if (!precio || isNaN(precio)) return 'Precio no disponible';
-            return new Intl.NumberFormat('es-CL', { 
-                style: 'currency', 
-                currency: 'CLP',
-                minimumFractionDigits: 0
-            }).format(precio);
-        }
+            <!-- Food section -->
+            <div id="food-section" class="category-section hidden">
+                <!-- Food subcategory navigation -->
+                <nav id="food-nav" class="mb-6">
+                    <div class="flex flex-wrap gap-2 justify-center">
+                        <button class="subcategory-btn px-4 py-2 rounded-full text-sm font-medium bg-lightCard dark:bg-darkCard hover:bg-lightAccent hover:text-white dark:hover:bg-darkAccent transition-all duration-200" data-category="appetizer">Aperitivos</button>
+                        <button class="subcategory-btn px-4 py-2 rounded-full text-sm font-medium bg-lightCard dark:bg-darkCard hover:bg-lightAccent hover:text-white dark:hover:bg-darkAccent transition-all duration-200" data-category="main">Platos Principales</button>
+                        <button class="subcategory-btn px-4 py-2 rounded-full text-sm font-medium bg-lightCard dark:bg-darkCard hover:bg-lightAccent hover:text-white dark:hover:bg-darkAccent transition-all duration-200" data-category="dessert">Postres</button>
+                        <button class="subcategory-btn px-4 py-2 rounded-full text-sm font-medium bg-lightCard dark:bg-darkCard hover:bg-lightAccent hover:text-white dark:hover:bg-darkAccent transition-all duration-200" data-category="side">Acompañamientos</button>
+                    </div>
+                </nav>
 
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
+                <!-- Food menu items container -->
+                <div id="food-menu" class="menu-items grid gap-4">
+                    <!-- Menu items will be populated by JavaScript -->
+                </div>
+            </div>
+        </main>
+    </div>
 
-        // --- UTILIDADES ---
-        function createIntersectionObserver() {
-            const observerOptions = {
-                rootMargin: '-150px 0px -50% 0px',
-                threshold: 0
-            };
+    <!-- Loading indicator -->
+    <div id="loading" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 hidden">
+        <div class="bg-white dark:bg-darkCard p-6 rounded-lg shadow-lg">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-lightAccent dark:border-darkAccent mx-auto"></div>
+            <p class="mt-4 text-center text-lightText dark:text-darkText">Cargando...</p>
+        </div>
+    </div>
 
-            return new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const targetId = entry.target.id;
-                        const subCategoryBtn = document.querySelector(`.subcategory-btn[data-target="${targetId}"]`);
-                        
-                        if (subCategoryBtn) {
-                            updateActiveSubCategory(subCategoryBtn);
-                            
-                            // Scroll suave del botón activo al centro
-                            subCategoryBtn.scrollIntoView({ 
-                                behavior: 'smooth', 
-                                block: 'nearest', 
-                                inline: 'center' 
-                            });
-                        }
-                    }
-                });
-            }, observerOptions);
-        }
-
-        function setupTheme() {
-            const themeToggle = document.getElementById('theme-toggle');
-            const lightIcon = document.getElementById('theme-light-icon');
-            const darkIcon = document.getElementById('theme-dark-icon');
-
-            const applyTheme = (theme) => {
-                document.documentElement.classList.toggle('dark', theme === 'dark');
-                lightIcon.classList.toggle('hidden', theme === 'dark');
-                darkIcon.classList.toggle('hidden', theme !== 'dark');
-            };
-
-            // Detectar preferencia del sistema si no hay tema guardado
-            const savedTheme = JSON.parse(sessionStorage.getItem('theme') || 'null') || 
-                             (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-            
-            applyTheme(savedTheme);
-
-            themeToggle.addEventListener('click', () => {
-                const newTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
-                sessionStorage.setItem('theme', JSON.stringify(newTheme));
-                applyTheme(newTheme);
-            });
-
-            // Escuchar cambios en la preferencia del sistema
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-                if (!sessionStorage.getItem('theme')) {
-                    applyTheme(e.matches ? 'dark' : 'light');
-                }
-            });
-        }
-    </script>
 </body>
 </html>
