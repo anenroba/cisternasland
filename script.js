@@ -46,27 +46,40 @@ async function init() {
 async function initializeMenuData() {
     const cachedData = localStorage.getItem(CACHE_KEY);
 
-    if (cachedData) {
+    // CORRECCIÓN: Se verifica que cachedData no sea null ni el string "undefined"
+    if (cachedData && cachedData !== 'undefined' && cachedData !== 'null') {
         console.log("Cargando datos desde localStorage...");
-        menuData = JSON.parse(cachedData);
-    } else {
-        console.log("No hay cache. Obteniendo datos desde la API...");
         try {
-            const response = await fetch(API_URL);
-            if (!response.ok) {
-                throw new Error(`Error de red: ${response.statusText}`);
-            }
-            const data = await response.json();
-            menuData = data.carta; // Extraemos el arreglo 'carta'
-            localStorage.setItem(CACHE_KEY, JSON.stringify(menuData));
-            console.log("Datos guardados en localStorage.");
+            menuData = JSON.parse(cachedData);
         } catch (error) {
-            console.error("No se pudo obtener el menú:", error);
-            // Opcional: Mostrar un mensaje de error al usuario en el HTML
-            document.getElementById('productsGrid').innerHTML = '<p style="text-align:center; color: var(--text-secondary);">No hemos podido cargar el menú. Por favor, intenta recargar la página.</p>';
+            console.error("Error al parsear datos del cache. Obteniendo datos de la API...", error);
+            // Si el cache está corrupto, lo limpiamos y vamos a la API
+            localStorage.removeItem(CACHE_KEY);
+            await fetchAndCacheMenuData();
         }
+    } else {
+        console.log("No hay cache válido. Obteniendo datos desde la API...");
+        await fetchAndCacheMenuData();
     }
 }
+
+// Función auxiliar para obtener y guardar los datos de la API, evitando código duplicado
+async function fetchAndCacheMenuData() {
+    try {
+        const response = await fetch(API_URL);
+        if (!response.ok) {
+            throw new Error(`Error de red: ${response.statusText}`);
+        }
+        const data = await response.json();
+        menuData = data.carta; // Extraemos el arreglo 'carta'
+        localStorage.setItem(CACHE_KEY, JSON.stringify(menuData));
+        console.log("Datos guardados en localStorage.");
+    } catch (error) {
+        console.error("No se pudo obtener el menú:", error);
+        document.getElementById('productsGrid').innerHTML = '<p style="text-align:center; color: var(--text-secondary);">No hemos podido cargar el menú. Por favor, intenta recargar la página.</p>';
+    }
+}
+
 
 // --- RENDERIZADO DE LA INTERFAZ ---
 
@@ -102,8 +115,6 @@ async function loadProducts(subcategoryId, reset = false) {
         page = 0;
     }
 
-    // Simulamos un retardo para que el spinner sea visible, como en el código original.
-    // En una implementación real con API, el tiempo de espera sería la propia llamada a la red.
     await new Promise(resolve => setTimeout(resolve, 500)); 
 
     let products = [];
@@ -116,7 +127,7 @@ async function loadProducts(subcategoryId, reset = false) {
         }
     }
 
-    const startIndex = page * 8; // Aumentamos la paginación para mejor prueba de scroll
+    const startIndex = page * 8;
     const endIndex = startIndex + 8;
     const pageProducts = products.slice(startIndex, endIndex);
 
@@ -135,7 +146,6 @@ function renderProducts(products) {
         const card = document.createElement('div');
         card.className = 'product-card';
 
-        // Usa la foto de la API, si no existe, usa la de picsum como fallback
         const imageUrl = product.foto || `https://picsum.photos/seed/${product.id_prod}/200/200.jpg`;
 
         card.innerHTML = `
@@ -219,7 +229,6 @@ function handleCategoryClick(btn) {
     document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     
-    // Obtener y renderizar la primera subcategoría de la nueva categoría principal
     const categoryName = categoryMap[categoryIdentifier];
     const categoryData = menuData.find(cat => cat.nombre_cat === categoryName);
     if (categoryData && categoryData.subcategorias.length > 0) {
@@ -241,7 +250,6 @@ function handleSubcategoryClick(btn) {
 
 function handleAddToCartClick(productId, addBtn) {
     let productToAdd = null;
-    // Buscar el producto en la estructura de datos
     for (const category of menuData) {
         for (const subcategory of category.subcategorias) {
             const foundProduct = subcategory.productos.find(p => p.id_prod === productId);
@@ -257,7 +265,6 @@ function handleAddToCartClick(productId, addBtn) {
         cart.push(productToAdd);
         updateCartCount();
         
-        // Feedback visual
         addBtn.style.backgroundColor = 'var(--price-color)';
         setTimeout(() => { addBtn.style.backgroundColor = ''; }, 300);
     }
