@@ -1,37 +1,38 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cisternas 2039</title>
-<link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cisternas 2039</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <!-- Barra superior -->
+  <header class="top-bar">
+    <button id="dark-mode-toggle" class="dark-mode-btn">🌙</button>
+    <h1 class="title">Cisternas 2039</h1>
+    <div class="mesa">Mesa <span id="mesa-numero">--</span></div>
+  </header>
 
-    <!-- Barra superior -->
-    <div class="top-bar">
-        <button id="toggle-theme">🌙</button>
-        <div class="top-title">Cisternas 2039</div>
-        <div class="mesa">Mesa <span id="mesa-numero">--</span></div>
+  <!-- Menú categorías -->
+  <div class="category-menu">
+    <button class="category-btn active" data-category="drink">Drink</button>
+    <button class="category-btn" data-category="food">Food</button>
+  </div>
 
-    </div>
+  <!-- Menú subcategorías -->
+  <div class="subcategory-menu" id="subcategory-menu">
+    <!-- Subcategorías para "Drink" -->
+    <button class="subcategory-btn active" data-subcategory="cervezas">Cervezas</button>
+    <button class="subcategory-btn" data-subcategory="vinos">Vinos</button>
+    <button class="subcategory-btn" data-subcategory="tragos">Tragos</button>
+  </div>
 
-    <!-- Categorías -->
-    <div class="categories">
-        <div class="main-cats">
-            <button class="active" data-cat="drink">Drink</button>
-            <button data-cat="food">Food</button>
-        </div>
-        <div class="sub-cats" id="sub-cats">
-            <!-- Subcategorías generadas por JS -->
-        </div>
-    </div>
+  <!-- Contenedor de productos -->
+  <div class="product-list" id="product-list">
+    <!-- Productos generados dinámicamente por JS -->
+  </div>
 
-    <!-- Productos -->
-    <div class="products" id="products">
-        <!-- Productos generados por JS -->
-    </div>
-
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
