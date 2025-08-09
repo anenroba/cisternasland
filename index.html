@@ -3,72 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Menú Interactivo - Cisternas</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Menú</title>
     <link rel="stylesheet" href="styles.css">
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: { 'inter': ['Inter', 'sans-serif'] },
-                    colors: {
-                        lightBg: '#f8fafc', lightText: '#1e293b', lightCard: '#ffffff',
-                        lightBorder: '#e2e8f0', lightAccent: '#3b82f6',
-                        darkBg: '#0f172a', darkText: '#f1f5f9', darkCard: '#1e293b',
-                        darkBorder: '#334155', darkAccent: '#60a5fa'
-                    }
-                }
-            }
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
         }
-    </script>
-    <script src="script.js" defer></script>
+
+        /* Contenedor principal de categorías */
+        .category-container {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            padding: 10px;
+            background: #fff;
+            border-bottom: 1px solid #ddd;
+        }
+
+        /* Botones de categoría */
+        .category-button {
+            flex: 1;
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            background: #f0f0f0;
+            color: #333;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .category-button:hover {
+            background: #e0e0e0;
+        }
+
+        .category-button.active {
+            background: #1e73ff;
+            color: #fff;
+            border-color: #1e73ff;
+        }
+
+        /* Contenedor de subcategorías con scroll horizontal */
+        .subcategory-container {
+            display: flex;
+            gap: 10px;
+            padding: 10px;
+            overflow-x: auto;
+            white-space: nowrap;
+            background: #fff;
+            border-bottom: 1px solid #ddd;
+        }
+
+        /* Ocultar scroll en algunos navegadores */
+        .subcategory-container::-webkit-scrollbar {
+            height: 6px;
+        }
+        .subcategory-container::-webkit-scrollbar-thumb {
+            background-color: #ccc;
+            border-radius: 4px;
+        }
+
+        /* Botones de subcategoría */
+        .subcategory-button {
+            display: inline-block;
+            padding: 8px 14px;
+            border-radius: 20px;
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            font-size: 14px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .subcategory-button:hover {
+            background: #e6e6e6;
+        }
+
+        .subcategory-button.active {
+            background: #1e73ff;
+            color: #fff;
+            border-color: #1e73ff;
+        }
+
+        /* Lista de productos */
+        .product-list {
+            padding: 15px;
+        }
+
+        .product-item {
+            background: #fff;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .product-name {
+            font-weight: bold;
+        }
+
+        .product-price {
+            color: #1e73ff;
+            font-weight: bold;
+        }
+    </style>
 </head>
-<body class="font-inter antialiased transition-colors duration-300 bg-lightBg text-lightText dark:bg-darkBg dark:text-darkText">
+<body>
 
-    <div class="container mx-auto max-w-2xl">
-        <!-- Header -->
-        <header class="sticky top-0 z-30 flex justify-between items-center py-4 px-4 bg-lightBg/80 dark:bg-darkBg/80 backdrop-blur-sm border-b border-lightBorder dark:border-darkBorder">
-            <div>
-                <button id="theme-toggle" class="p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-lightAccent dark:focus:ring-darkAccent">
-                    <svg id="theme-light-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6 hidden"><path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.106a.75.75 0 011.06 1.06l-1.591 1.59a.75.75 0 11-1.06-1.06l1.59-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.836 17.836a.75.75 0 01-1.06 1.06l-1.59-1.591a.75.75 0 111.06-1.06l1.59 1.591zM12 21.75a.75.75 0 01-.75-.75v-2.25a.75.75 0 011.5 0V21a.75.75 0 01-.75-.75zM5.106 18.894a.75.75 0 01-1.06-1.06l1.591-1.59a.75.75 0 111.06 1.06l-1.59 1.59zM3 12a.75.75 0 01.75-.75h2.25a.75.75 0 010 1.5H3.75A.75.75 0 013 12zM6.106 5.106a.75.75 0 011.06 1.06l-1.59 1.591a.75.75 0 11-1.06-1.06l1.59-1.591z" /></svg>
-                    <svg id="theme-dark-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6 hidden"><path fill-rule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 004.463-.948a.75.75 0 01.819.162l.819.819a.75.75 0 01-.162.819A10.5 10.5 0 0118 18a10.5 10.5 0 01-10.5-10.5c0-1.141.23-2.243.654-3.262l.819-.819a.75.75 0 01.819-.162z" clip-rule="evenodd" /></svg>
-                </button>
-            </div>
-            <div class="text-center"><h1 class="font-bold text-lg">Cisternas 2039</h1></div>
-            <div class="flex items-center gap-x-2">
-                <span class="text-sm">Mesa</span>
-                <span id="table-number" class="font-bold text-lg">--</span>
-            </div>
-        </header>
-
-        <!-- Categorías principales -->
-        <nav class="sticky top-[4.5rem] z-20 mx-4 mt-2 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 shadow-inner">
-            <div class="flex justify-around rounded-lg">
-                <button id="drink-btn" class="main-category-btn w-full py-2 px-4 rounded-lg text-lg font-semibold transition-all duration-300">Drink 🍺</button>
-                <button id="food-btn" class="main-category-btn w-full py-2 px-4 rounded-lg text-lg font-semibold transition-all duration-300">Food 🍴</button>
-            </div>
-        </nav>
-        
-        <!-- Subcategorías -->
-        <nav id="sub-category-nav" class="sticky top-[8.2rem] z-10 bg-lightBg/80 dark:bg-darkBg/80 backdrop-blur-sm py-3 overflow-x-auto">
-            <div id="sub-category-container" class="flex flex-nowrap gap-3 px-4"></div>
-        </nav>
-
-        <!-- Contenido -->
-        <main id="menu-items-container" class="px-4 py-6"></main>
+    <!-- Categorías principales -->
+    <div class="category-container">
+        <button class="category-button active" onclick="setCategory('drink')">Drink 🍺</button>
+        <button class="category-button" onclick="setCategory('food')">Food 🍽️</button>
     </div>
 
-    <!-- Cargando -->
-    <div id="loading" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 hidden">
-        <div class="bg-white dark:bg-darkCard p-6 rounded-lg shadow-lg">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-lightAccent dark:border-darkAccent mx-auto"></div>
-            <p class="mt-4 text-center text-lightText dark:text-darkText">Cargando...</p>
-        </div>
+    <!-- Subcategorías -->
+    <div class="subcategory-container" id="subcategory-container">
+        <!-- Botones generados dinámicamente -->
     </div>
+
+    <!-- Lista de productos -->
+    <div class="product-list" id="product-list">
+        <!-- Productos generados dinámicamente -->
+    </div>
+
+    <script>
+        const categories = {
+            drink: [
+                "Espumante", "Gin", "Pisco", "Ron", "Vodka", "Whisky", "Schop (500cc)",
+                "Sin alcohol", "Clásica - Mojitos", "Clásica - Sours", "Clásica - Spritz",
+                "Clásica - Tequila", "Clásicos de Siempre", "Coctelería de Autor", "Pisco",
+                "Whisky", "Licores", "Bebidas", "Gin (Sin alcohol - Tanqueray 0.0)",
+                "Jugos Naturales", "Limonadas", "Mocktails", "Mojitos", "Red Bull",
+                "Tequila", "Botella", "Botellas", "Copa", "Tintos & Blancos",
+                "Blend", "Bourbon", "Irish", "Single Malt", "Tennessee Whisky"
+            ],
+            food: [
+                "Entradas", "Tablas", "Hamburguesas", "Pizzas", "Postres", "Platos principales"
+            ]
+        };
+
+        let currentCategory = 'drink';
+
+        function setCategory(category) {
+            currentCategory = category;
+            document.querySelectorAll('.category-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.category-button[onclick="setCategory('${category}')"]`).classList.add('active');
+            renderSubcategories();
+        }
+
+        function renderSubcategories() {
+            const container = document.getElementById('subcategory-container');
+            container.innerHTML = '';
+            categories[currentCategory].forEach((subcat, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'subcategory-button';
+                btn.textContent = subcat;
+                btn.onclick = () => setActiveSubcategory(btn);
+                if (index === 0) btn.classList.add('active');
+                container.appendChild(btn);
+            });
+        }
+
+        function setActiveSubcategory(button) {
+            document.querySelectorAll('.subcategory-button').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+        }
+
+        // Inicializar
+        renderSubcategories();
+    </script>
 
 </body>
 </html>

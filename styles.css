@@ -1,59 +1,142 @@
-/* Contenedor general */
-.category-tabs {
-  display: flex;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  overflow: hidden;
-  background-color: #fff;
+/* ------------------------------
+   Global / helpers
+   ------------------------------ */
+:root{
+  --accent: #3b82f6; /* color activo */
+  --accent-strong: #2563eb;
+  --muted: #f3f4f6;
+  --card-bg: #ffffff;
+  --text: #0f172a;
+  --subtle-border: rgba(15,23,42,0.06);
 }
 
-/* Botones principales (Drink / Food) */
-.category-tabs button {
-  flex: 1;
-  padding: 12px 20px;
-  font-size: 16px;
-  font-weight: 500;
-  background-color: transparent;
-  border: none;
+/* Remove old @apply leftovers effect */
+.main-category-btn,
+.subcategory-btn {
+  box-sizing: border-box;
+}
+
+/* ------------------------------
+   Main category (Drink / Food)
+   ------------------------------ */
+.main-category-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  background: var(--card-bg);
+  color: var(--text);
+  border: 1px solid var(--subtle-border);
   cursor: pointer;
-  color: #374151;
-  transition: all 0.25s ease;
-}
-
-.category-tabs button.active {
-  background-color: #2563eb;
-  color: white;
   font-weight: 600;
+  transition: background-color .18s ease, color .18s ease, box-shadow .18s ease, transform .12s ease;
 }
 
-/* Lista de subcategorías */
-.subcategory-list {
+.main-category-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(15,23,42,0.04);
+}
+
+.main-category-btn.active {
+  background: var(--accent-strong);
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(37,99,235,0.14);
+  border-color: transparent;
+}
+
+/* ------------------------------
+   Subcategory nav wrapper (sticky)
+   ------------------------------ */
+#sub-category-nav {
+  position: sticky;
+  top: calc(4.5rem + 0.75rem); /* ajusta si cambias alturas */
+  z-index: 40;
+  background: rgba(248,250,252,0.9); /* leve translúcido */
+  backdrop-filter: blur(6px);
+  padding-top: 8px;
+  padding-bottom: 6px;
+  border-bottom: 0; /* evita línea */
+}
+
+/* ------------------------------
+   Subcategory container (hscroll)
+   ------------------------------ */
+/* el id que usas en el HTML: #sub-category-container */
+#sub-category-container {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
   gap: 10px;
-  margin-top: 16px;
-}
-
-/* Botones de subcategoría */
-.subcategory-list button {
   padding: 8px 16px;
-  background-color: #f3f4f6;
-  border: none;
-  border-radius: 9999px; /* forma pill */
-  font-size: 14px;
+  flex-wrap: nowrap;              /* NO bajar a otra línea */
+  overflow-x: auto;               /* permitir scroll horizontal */
+  -webkit-overflow-scrolling: touch; /* smooth en iOS */
+  white-space: nowrap;            /* evita romper texto dentro del botón */
+  scrollbar-width: none;          /* firefox */
+  -ms-overflow-style: none;       /* IE 10+ */
+}
+
+/* hide scrollbar but keep scrollable (chromium / webkit) */
+#sub-category-container::-webkit-scrollbar { height: 8px; }
+#sub-category-container::-webkit-scrollbar-track { background: transparent; }
+#sub-category-container::-webkit-scrollbar-thumb { background: transparent; }
+
+/* fallback: si quieres totalmente ocultar la barra (chromium) */
+#sub-category-container.hide-scroll::-webkit-scrollbar { display: none; }
+
+/* ------------------------------
+   Subcategory buttons (pills)
+   ------------------------------ */
+.subcategory-btn {
+  flex: 0 0 auto;                 /* no se estira ni reduce */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
+  background: #fff;
+  border-radius: 9999px;          /* pill */
+  border: 1px solid rgba(15,23,42,0.04);
+  color: #1f2937;
   font-weight: 500;
-  color: #374151;
+  font-size: 14px;
   cursor: pointer;
-  transition: all 0.25s ease;
+  white-space: nowrap;            /* importante: que no rote en varias líneas */
+  line-height: 1;
+  transition: background-color .18s ease, color .18s ease, box-shadow .18s ease, transform .12s ease;
+  box-shadow: 0 2px 6px rgba(15,23,42,0.03);
+  text-align: center;
 }
 
-.subcategory-list button:hover {
-  background-color: #e5e7eb;
+/* hover */
+.subcategory-btn:hover {
+  background: var(--muted);
+  transform: translateY(-2px);
 }
 
-.subcategory-list button.active {
-  background-color: #2563eb; /* azul vivo */
+/* estado activo (resaltado vivo) */
+.subcategory-btn.active {
+  background: var(--accent);
   color: white;
-  font-weight: 600;
-  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+  border-color: transparent;
+  box-shadow: 0 8px 22px rgba(59,130,246,0.16);
+  font-weight: 700;
 }
+
+/* Para pantallas pequeñas: espacio lateral para que no corte */
+@media (max-width: 420px) {
+  .subcategory-btn { padding: 8px 12px; font-size: 13px; }
+}
+
+/* ------------------------------
+   Ajustes visuales extra para evitar "banda" gris
+   ------------------------------ */
+/* Si hay una franja gris proveniente del track del scrollbar, forzamos transparencia */
+#sub-category-nav,
+#sub-category-container {
+  background-clip: padding-box;
+  border: none;
+}
+
+/* asegúrate que las secciones que quedan debajo no sean tapadas por el sticky nav */
+.scroll-mt-40 { scroll-margin-top: 14rem; } /* ajusta si mueves alto de headers */
