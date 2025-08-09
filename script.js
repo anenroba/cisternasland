@@ -1,54 +1,60 @@
-document.addEventListener("DOMContentLoaded", async () => {
-    const menuContainer = document.getElementById("menu-container");
-    const subcategoryContainer = document.getElementById("subcategory-container");
-    const toggleThemeBtn = document.getElementById("toggle-theme");
+document.addEventListener("DOMContentLoaded", () => {
 
-    let currentTheme = localStorage.getItem("theme") || "light";
-    document.body.classList.add(`${currentTheme}-theme`);
+    // --- Función para inicializar eventos en elementos estáticos ---
+    function initStaticEvents() {
+        const btnGenerar = document.getElementById("btnGenerar");
+        if (btnGenerar) {
+            btnGenerar.addEventListener("click", generarQR);
+        }
+    }
 
-    toggleThemeBtn.addEventListener("click", () => {
-        document.body.classList.remove(`${currentTheme}-theme`);
-        currentTheme = currentTheme === "light" ? "dark" : "light";
-        document.body.classList.add(`${currentTheme}-theme`);
-        localStorage.setItem("theme", currentTheme);
-    });
+    // --- Función para inicializar eventos en elementos dinámicos ---
+    function initDynamicEvents() {
+        const btnVolver = document.getElementById("btnVolver");
+        if (btnVolver) {
+            btnVolver.addEventListener("click", mostrarFormulario);
+        }
+    }
 
-    try {
-        const response = await fetch("https://smartmenu.cl/api/carta/5");
-        const data = await response.json();
+    // --- Mostrar formulario inicial ---
+    function mostrarFormulario() {
+        const app = document.getElementById("app");
+        app.innerHTML = `
+            <h1>Generar QR</h1>
+            <input type="text" id="textoQR" placeholder="Escribe algo..." />
+            <button id="btnGenerar">Generar QR</button>
+        `;
+        initStaticEvents();
+    }
 
-        // Validar si existen categorías
-        if (!data.categorias || !Array.isArray(data.categorias) || data.categorias.length === 0) {
-            menuContainer.innerHTML = "<p class='error'>No hay categorías disponibles.</p>";
+    // --- Generar QR y reemplazar HTML ---
+    function generarQR() {
+        const texto = document.getElementById("textoQR").value;
+        if (!texto.trim()) {
+            alert("Por favor escribe un texto");
             return;
         }
 
-        data.categorias.forEach(categoria => {
-            const categoriaElement = document.createElement("div");
-            categoriaElement.classList.add("categoria");
-            categoriaElement.textContent = categoria.nombre;
+        // Guardar en localStorage
+        localStorage.setItem("textoQR", texto);
 
-            categoriaElement.addEventListener("click", () => {
-                subcategoryContainer.innerHTML = "";
+        const app = document.getElementById("app");
+        app.innerHTML = `
+            <h1>Tu QR</h1>
+            <div id="qr"></div>
+            <button id="btnVolver">Volver</button>
+        `;
 
-                // Validar si existen subcategorías en la categoría seleccionada
-                if (!categoria.subcategorias || !Array.isArray(categoria.subcategorias) || categoria.subcategorias.length === 0) {
-                    subcategoryContainer.innerHTML = "<p class='error'>No hay subcategorías disponibles.</p>";
-                    return;
-                }
-
-                categoria.subcategorias.forEach(subcategoria => {
-                    const subcategoriaElement = document.createElement("div");
-                    subcategoriaElement.classList.add("subcategoria");
-                    subcategoriaElement.textContent = subcategoria.nombre;
-                    subcategoryContainer.appendChild(subcategoriaElement);
-                });
-            });
-
-            menuContainer.appendChild(categoriaElement);
+        // Generar el QR
+        new QRCode(document.getElementById("qr"), {
+            text: texto,
+            width: 128,
+            height: 128
         });
-    } catch (error) {
-        console.error("Error cargando el menú:", error);
-        menuContainer.innerHTML = "<p class='error'>Error al cargar el menú.</p>";
+
+        initDynamicEvents();
     }
+
+    // --- Inicio ---
+    mostrarFormulario();
 });
