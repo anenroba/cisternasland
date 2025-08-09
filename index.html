@@ -3,64 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Menú Interactivo - Cisternas 2039</title>
-
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>Menú Interactivo - Cisternas</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
-                    fontFamily: { inter: ['Inter', 'sans-serif'] },
+                    fontFamily: { 'inter': ['Inter', 'sans-serif'] },
                     colors: {
                         lightBg: '#f3f4f6', lightText: '#1e293b', lightCard: '#ffffff',
-                        lightBorder: '#e5e7eb', lightAccent: '#3b82f6',
-                        darkBg: '#0f172a', darkText: '#f1f5f9', darkCard: '#1e293b',
-                        darkBorder: '#334155', darkAccent: '#60a5fa'
+                        lightBorder: '#e2e8f0', lightAccent: '#3b82f6',
+                        darkBg: '#0f172a', darkText: '#f8fafc', darkCard: '#334155',
+                        darkBorder: '#475569', darkAccent: '#2563eb'
                     }
                 }
             }
         }
     </script>
-    <link rel="stylesheet" href="styles.css">
     <script src="script.js" defer></script>
 </head>
-<body class="bg-lightBg text-lightText dark:bg-darkBg dark:text-darkText font-inter">
+<body class="font-inter antialiased transition-colors duration-300 bg-lightBg text-lightText dark:bg-darkBg dark:text-darkText">
 
-    <!-- HEADER -->
-    <header class="sticky top-0 z-50 bg-lightBg dark:bg-darkBg border-b border-lightBorder dark:border-darkBorder shadow-sm">
-        <div class="flex justify-between items-center px-4 py-3">
+    <div class="container mx-auto max-w-2xl">
+
+        <!-- HEADER -->
+        <header class="sticky top-0 z-50 flex justify-between items-center py-4 px-4 bg-lightBg dark:bg-darkBg border-b border-lightBorder dark:border-darkBorder">
             <!-- Botón modo oscuro/claro -->
-            <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
-                <svg id="theme-light-icon" xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.106a.75.75 0 011.06 1.06l-1.591 1.59a.75.75 0 11-1.06-1.06l1.59-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.836 17.836a.75.75 0 01-1.06 1.06l-1.59-1.591a.75.75 0 111.06-1.06l1.59 1.591zM12 21.75a.75.75 0 01-.75-.75v-2.25a.75.75 0 011.5 0V21a.75.75 0 01-.75-.75zM5.106 18.894a.75.75 0 01-1.06-1.06l1.591-1.59a.75.75 0 111.06 1.06l-1.59 1.59zM3 12a.75.75 0 01.75-.75h2.25a.75.75 0 010 1.5H3.75A.75.75 0 013 12zM6.106 5.106a.75.75 0 011.06 1.06l-1.59 1.591a.75.75 0 11-1.06-1.06l1.59-1.591z" /></svg>
-                <svg id="theme-dark-icon" xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 004.463-.948a.75.75 0 01.819.162l.819.819a.75.75 0 01-.162.819A10.5 10.5 0 0118 18a10.5 10.5 0 01-10.5-10.5c0-1.141.23-2.243.654-3.262l.819-.819a.75.75 0 01.819-.162z" clip-rule="evenodd" /></svg>
+            <button id="theme-toggle" class="p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-lightAccent dark:focus:ring-darkAccent">
+                <svg id="theme-light-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0z" />
+                </svg>
+                <svg id="theme-dark-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden" viewBox="0 0 24 24" fill="currentColor">
+                    <path fill-rule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 004.463-.948a.75.75 0 01.819.162l.819.819a.75.75 0 01-.162.819A10.5 10.5 0 0118 18a10.5 10.5 0 01-10.5-10.5c0-1.141.23-2.243.654-3.262l.819-.819a.75.75 0 01.819-.162z" clip-rule="evenodd" />
+                </svg>
             </button>
 
             <!-- Título -->
-            <h1 class="text-lg font-bold">Cisternas 2039</h1>
+            <h1 class="font-bold text-lg">Cisternas 2039</h1>
 
             <!-- Mesa -->
-            <div class="flex items-center space-x-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M3 6a1 1 0 011-1h16a1 1 0 011 1v2H3V6zm0 4h18v10a1 1 0 01-1 1h-5v-3a1 1 0 00-1-1H8a1 1 0 00-1 1v3H4a1 1 0 01-1-1V10z" /></svg>
-                <span id="table-number" class="font-semibold">--</span>
+            <div class="flex items-center gap-x-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                </svg>
+                <span id="table-number" class="font-bold text-lg">--</span>
             </div>
+        </header>
+
+        <!-- BOTONES PRINCIPALES -->
+        <nav class="bg-lightBg dark:bg-darkBg py-3 flex justify-center gap-4 border-b border-lightBorder dark:border-darkBorder">
+            <button id="drink-btn" class="categoria-btn">Drink</button>
+            <button id="food-btn" class="categoria-btn">Food</button>
+        </nav>
+
+        <!-- SUBCATEGORÍAS -->
+        <nav id="subcategorias-nav" class="py-3 overflow-x-auto">
+            <div id="sub-category-container" class="flex flex-nowrap gap-3 px-4"></div>
+        </nav>
+
+        <!-- PRODUCTOS -->
+        <main id="menu-items-container" class="px-4 py-6"></main>
+    </div>
+
+    <!-- LOADING -->
+    <div id="loading" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 hidden">
+        <div class="bg-white dark:bg-darkCard p-6 rounded-lg shadow-lg">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-lightAccent dark:border-darkAccent mx-auto"></div>
+            <p class="mt-4 text-center text-lightText dark:text-darkText">Cargando...</p>
         </div>
-
-        <!-- Categorías principales -->
-        <div class="flex justify-center space-x-4 py-2 border-t border-lightBorder dark:border-darkBorder">
-            <button class="categoria-btn active" data-categoria="drink">Drink</button>
-            <button class="categoria-btn" data-categoria="food">Food</button>
-        </div>
-    </header>
-
-    <!-- Subcategorías -->
-    <nav id="subcategorias-nav" class="sticky top-[104px] bg-lightBg dark:bg-darkBg z-40 border-b border-lightBorder dark:border-darkBorder">
-        <div id="subcategorias-container" class="flex space-x-3 overflow-x-auto px-4 py-3"></div>
-    </nav>
-
-    <!-- Productos -->
-    <main id="productos-container" class="p-4"></main>
+    </div>
 
 </body>
 </html>

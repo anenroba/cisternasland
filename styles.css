@@ -1,13 +1,10 @@
-body {
-    font-family: 'Inter', sans-serif;
-}
-
-/* Botones principales */
+/* BOTONES PRINCIPALES */
 .categoria-btn {
-    background-color: #e5e7eb;
     padding: 8px 20px;
     border-radius: 9999px;
     font-weight: 600;
+    background-color: #e5e7eb;
+    color: #1e293b;
     transition: all 0.3s ease;
 }
 .categoria-btn:hover {
@@ -17,8 +14,30 @@ body {
     background-color: #3b82f6;
     color: white;
 }
+.dark .categoria-btn {
+    background-color: #334155;
+    color: #f1f5f9;
+}
+.dark .categoria-btn:hover {
+    background-color: #475569;
+}
+.dark .categoria-btn.active {
+    background-color: #2563eb;
+    color: white;
+}
 
-/* Botones subcategorías */
+/* SUBCATEGORÍAS */
+#subcategorias-nav {
+    position: sticky;
+    top: 104px;
+    background-color: #f3f4f6;
+    z-index: 50;
+    border-bottom: 1px solid #e5e7eb;
+}
+.dark #subcategorias-nav {
+    background-color: #1e293b;
+    border-bottom: 1px solid #334155;
+}
 .subcategoria-btn {
     flex-shrink: 0;
     padding: 6px 14px;
@@ -28,37 +47,49 @@ body {
     font-weight: 500;
     white-space: nowrap;
     transition: all 0.3s ease;
-    color: #3b82f6;
+    color: #2563eb;
 }
 .subcategoria-btn:hover {
     background-color: #e0e7ff;
 }
 .subcategoria-btn.active {
-    background-color: #3b82f6;
+    background-color: #2563eb;
+    color: white;
+}
+.dark .subcategoria-btn {
+    color: #93c5fd;
+}
+.dark .subcategoria-btn:hover {
+    background-color: #1e40af;
+}
+.dark .subcategoria-btn.active {
+    background-color: #2563eb;
     color: white;
 }
 
-/* Ocultar barra scroll */
-#subcategorias-container::-webkit-scrollbar {
-    display: none;
-}
-#subcategorias-container {
-    scrollbar-width: none;
-}
-
-/* Producto */
+/* PRODUCTOS */
 .producto {
     background-color: white;
-    border-radius: 0.5rem;
-    padding: 1rem;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 12px;
 }
 .producto h3 {
-    font-weight: 600;
-    margin-bottom: 4px;
+    font-weight: bold;
 }
 .producto .precio {
+    float: right;
+    font-weight: bold;
     color: #2563eb;
-    font-weight: 700;
+}
+.dark .producto {
+    background-color: #334155;
+    border-color: #475569;
+}
+.dark .producto h3 {
+    color: #f8fafc;
+}
+.dark .producto .precio {
+    color: #60a5fa;
 }
