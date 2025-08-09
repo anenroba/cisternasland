@@ -1,178 +1,31 @@
-/* Colores personalizados para el tema */
-:root {
-    --lightBg: #f8fafc;
-    --lightText: #1e293b;
-    --lightCard: #ffffff;
-    --lightBorder: #e2e8f0;
-    --lightAccent: #3b82f6;
-    --darkBg: #0f172a;
-    --darkText: #f1f5f9;
-    --darkCard: #1e293b;
-    --darkBorder: #334155;
-    --darkAccent: #60a5fa;
+/* Estilo para los botones de categoría principal (diseño de interruptor) */
+.main-category-btn {
+    @apply text-slate-500 dark:text-slate-400; /* Color de texto inactivo */
 }
-
-/* Aplicar los colores al documento */
-.bg-lightBg { background-color: var(--lightBg); }
-.bg-darkBg { background-color: var(--darkBg); }
-.text-lightText { color: var(--lightText); }
-.text-darkText { color: var(--darkText); }
-.bg-lightCard { background-color: var(--lightCard); }
-.bg-darkCard { background-color: var(--darkCard); }
-.border-lightBorder { border-color: var(--lightBorder); }
-.border-darkBorder { border-color: var(--darkBorder); }
-.bg-lightAccent { background-color: var(--lightAccent); }
-.bg-darkAccent { background-color: var(--darkAccent); }
-.focus\:ring-lightAccent:focus { --tw-ring-color: var(--lightAccent); }
-.focus\:ring-darkAccent:focus { --tw-ring-color: var(--darkAccent); }
-.hover\:bg-lightAccent:hover { background-color: var(--lightAccent); }
-.hover\:bg-darkAccent:hover { background-color: var(--darkAccent); }
-
-/* Custom scrollbar for a minimalist look */
-::-webkit-scrollbar {
-    width: 8px;
-    height: 6px;
-}
-
-::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.dark ::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--lightAccent);
-    border-radius: 10px;
-}
-
-.dark ::-webkit-scrollbar-thumb {
-    background: var(--darkAccent);
-}
-
-/* Style for active main category button */
 .main-category-btn.active {
-    background-color: var(--lightAccent);
-    color: white;
+    @apply bg-lightAccent text-white shadow-md; /* Estilo del botón activo */
 }
-
 .dark .main-category-btn.active {
-    background-color: var(--darkAccent);
-    color: white;
+    @apply bg-darkAccent text-darkText;
 }
 
-/* Style for active sub-category button */
+/* Estilo base para los botones de subcategoría (diseño de texto) */
+.subcategory-btn {
+    @apply flex-shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium bg-transparent text-lightAccent dark:text-darkAccent whitespace-nowrap transition-all duration-200;
+}
+
+/* Estilo para el botón de subcategoría activo (fondo sólido) */
 .subcategory-btn.active {
-    background-color: var(--lightAccent);
-    color: white;
+    @apply bg-lightAccent text-white;
 }
-
 .dark .subcategory-btn.active {
-    background-color: var(--darkAccent);
-    color: white;
+    @apply bg-darkAccent text-darkText;
 }
 
-/* Ocultar scrollbar en los navs pegajosos para un look más limpio */
-#main-category-nav::-webkit-scrollbar,
-#drink-nav::-webkit-scrollbar,
-#food-nav::-webkit-scrollbar {
+/* Ocultar la barra de scroll horizontal en el nav de subcategorías */
+#sub-category-nav::-webkit-scrollbar {
     display: none;
 }
-
-/* Hacer que los navs sean scrolleables horizontalmente en móvil */
-#main-category-nav,
-#drink-nav > div,
-#food-nav > div {
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* Internet Explorer 10+ */
-}
-
-/* Estilos para las tarjetas del menú */
-.menu-item-card {
-    @apply bg-lightCard dark:bg-darkCard rounded-xl p-4 shadow-sm border border-lightBorder dark:border-darkBorder transition-all duration-200 hover:shadow-md hover:scale-105;
-}
-
-.menu-item-card:hover {
-    transform: translateY(-2px);
-}
-
-/* Estilos para los precios */
-.price {
-    @apply text-lightAccent dark:text-darkAccent font-bold text-lg;
-}
-
-/* Estilos para las descripciones */
-.description {
-    @apply text-gray-600 dark:text-gray-400 text-sm mt-2 line-clamp-2;
-}
-
-/* Utilidad para truncar texto */
-.line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-/* Animaciones suaves para transiciones */
-.category-section {
-    animation: fadeIn 0.3s ease-in-out;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Responsive grid para los elementos del menú */
-.menu-items {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1rem;
-}
-
-@media (max-width: 640px) {
-    .menu-items {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* Mejoras para la accesibilidad */
-.main-category-btn:focus,
-.subcategory-btn:focus {
-    outline: 2px solid var(--lightAccent);
-    outline-offset: 2px;
-}
-
-.dark .main-category-btn:focus,
-.dark .subcategory-btn:focus {
-    outline-color: var(--darkAccent);
-}
-
-/* Estilos para el estado de carga */
-.loading-shimmer {
-    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-}
-
-.dark .loading-shimmer {
-    background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
-    background-size: 200% 100%;
-}
-
-@keyframes shimmer {
-    0% {
-        background-position: -200% 0;
-    }
-    100% {
-        background-position: 200% 0;
-    }
+#sub-category-nav {
+  scrollbar-width: none; /* For Firefox */
 }
