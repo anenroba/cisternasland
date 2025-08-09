@@ -10,6 +10,8 @@ let menuObserver;
 document.addEventListener('DOMContentLoaded', main);
 
 async function main() {
+    setupTheme();
+    setupTableNumber();
     menuObserver = createIntersectionObserver();
 
     try {
@@ -120,13 +122,11 @@ function renderMenuItems(subCategories) {
             card.className = 'producto';
 
             card.innerHTML = `
-                <div class="flex justify-between items-start gap-4">
-                    <div class="flex-grow">
-                        <h3 class="font-semibold">${escapeHtml(item.nombre)}</h3>
-                        ${item.descripcion ? `<p class="text-sm text-gray-600 mt-1">${escapeHtml(item.descripcion)}</p>` : ''}
-                    </div>
-                    <div class="flex-shrink-0 font-bold text-blue-600">${price}</div>
+                <div class="flex justify-between items-center">
+                    <h3>${escapeHtml(item.nombre)}</h3>
+                    <span class="precio">${price}</span>
                 </div>
+                ${item.descripcion ? `<p class="text-sm text-gray-600 mt-1">${escapeHtml(item.descripcion)}</p>` : ''}
             `;
             grid.appendChild(card);
         });
@@ -167,4 +167,36 @@ function createIntersectionObserver() {
             }
         });
     }, observerOptions);
+}
+
+function setupTableNumber() {
+    const tableNumberSpan = document.getElementById('table-number');
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const tableNumber = urlParams.get('mesa');
+        tableNumberSpan.textContent = tableNumber ? escapeHtml(tableNumber) : '--';
+    } catch {
+        tableNumberSpan.textContent = '--';
+    }
+}
+
+function setupTheme() {
+    const themeToggle = document.getElementById('theme-toggle');
+    const lightIcon = document.getElementById('theme-light-icon');
+    const darkIcon = document.getElementById('theme-dark-icon');
+
+    const applyTheme = (theme) => {
+        document.documentElement.classList.toggle('dark', theme === 'dark');
+        lightIcon.classList.toggle('hidden', theme === 'dark');
+        darkIcon.classList.toggle('hidden', theme !== 'dark');
+    };
+
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    applyTheme(savedTheme);
+
+    themeToggle.addEventListener('click', () => {
+        const newTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+        localStorage.setItem('theme', newTheme);
+        applyTheme(newTheme);
+    });
 }
