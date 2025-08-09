@@ -1,57 +1,54 @@
-// --- CONFIGURACIÓN ---
-const API_URL = 'https://api-swa.onrender.com/api/carta';
-const DRINK_CATEGORIES = ["Botellas", "Cervezas", "Coctelería", "Degustaciones", "Gin", "Licores", "Pisco", "Ron", "Sin alcohol", "Tequila", "Vinos & Espumantes", "Vodka", "Whisky"];
-const FOOD_CATEGORIES = ["Para comenzar", "Para compartir", "Pizzas", "Sushi Especial", "Dulce Final"];
+document.addEventListener("DOMContentLoaded", async () => {
+    const menuContainer = document.getElementById("menu-container");
+    const subcategoryContainer = document.getElementById("subcategory-container");
+    const toggleThemeBtn = document.getElementById("toggle-theme");
 
-// --- VARIABLES GLOBALES ---
-let menuObserver;
+    let currentTheme = localStorage.getItem("theme") || "light";
+    document.body.classList.add(`${currentTheme}-theme`);
 
-// --- INICIALIZACIÓN ---
-document.addEventListener('DOMContentLoaded', main);
-
-async function main() {
-    setupTheme();
-    setupTableNumber();
-    menuObserver = createIntersectionObserver();
-
-    const loadingEl = document.getElementById('loading');
-    loadingEl.classList.remove('hidden'); // Mostrar loading
+    toggleThemeBtn.addEventListener("click", () => {
+        document.body.classList.remove(`${currentTheme}-theme`);
+        currentTheme = currentTheme === "light" ? "dark" : "light";
+        document.body.classList.add(`${currentTheme}-theme`);
+        localStorage.setItem("theme", currentTheme);
+    });
 
     try {
-        const rawData = await fetchData();
-        const menuData = transformData(rawData);
+        const response = await fetch("https://smartmenu.cl/api/carta/5");
+        const data = await response.json();
 
-        setupEventListeners(menuData);
-        handleGroupClick('Drink', menuData);
+        // Validar si existen categorías
+        if (!data.categorias || !Array.isArray(data.categorias) || data.categorias.length === 0) {
+            menuContainer.innerHTML = "<p class='error'>No hay categorías disponibles.</p>";
+            return;
+        }
 
+        data.categorias.forEach(categoria => {
+            const categoriaElement = document.createElement("div");
+            categoriaElement.classList.add("categoria");
+            categoriaElement.textContent = categoria.nombre;
+
+            categoriaElement.addEventListener("click", () => {
+                subcategoryContainer.innerHTML = "";
+
+                // Validar si existen subcategorías en la categoría seleccionada
+                if (!categoria.subcategorias || !Array.isArray(categoria.subcategorias) || categoria.subcategorias.length === 0) {
+                    subcategoryContainer.innerHTML = "<p class='error'>No hay subcategorías disponibles.</p>";
+                    return;
+                }
+
+                categoria.subcategorias.forEach(subcategoria => {
+                    const subcategoriaElement = document.createElement("div");
+                    subcategoriaElement.classList.add("subcategoria");
+                    subcategoriaElement.textContent = subcategoria.nombre;
+                    subcategoryContainer.appendChild(subcategoriaElement);
+                });
+            });
+
+            menuContainer.appendChild(categoriaElement);
+        });
     } catch (error) {
-        console.error("Error al cargar el menú:", error);
-        document.getElementById('productos-container').innerHTML = `<p class="text-center text-red-500">No se pudo cargar el menú.</p>`;
-    } finally {
-        loadingEl.classList.add('hidden'); // Ocultar loading
+        console.error("Error cargando el menú:", error);
+        menuContainer.innerHTML = "<p class='error'>Error al cargar el menú.</p>";
     }
-}
-
-// --- MANEJO DE DATOS CON CACHE ---
-async function fetchData() {
-    const cacheKey = 'menuData';
-    const cacheTimeKey = 'menuDataTime';
-    const now = Date.now();
-    const cacheTTL = 1000 * 60 * 60; // 1 hora
-
-    const cachedData = localStorage.getItem(cacheKey);
-    const cachedTime = localStorage.getItem(cacheTimeKey);
-
-    if (cachedData && cachedTime && (now - cachedTime < cacheTTL)) {
-        return JSON.parse(cachedData);
-    }
-
-    const response = await fetch(API_URL);
-    if (!response.ok) throw new Error(`Error de red: ${response.statusText}`);
-    const data = await response.json();
-
-    localStorage.setItem(cacheKey, JSON.stringify(data));
-    localStorage.setItem(cacheTimeKey, now);
-
-    return data;
-}
+});
