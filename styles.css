@@ -1,95 +1,127 @@
-/* BOTONES PRINCIPALES */
-.categoria-btn {
-    padding: 8px 20px;
-    border-radius: 9999px;
-    font-weight: 600;
-    background-color: #e5e7eb;
-    color: #1e293b;
-    transition: all 0.3s ease;
+:root {
+    --bg-color: #f8f9fa;
+    --text-color: #222;
+    --highlight-color: #007bff;
+    --price-color: #e63946;
+    --card-bg: #fff;
 }
-.categoria-btn:hover {
-    background-color: #d1d5db;
+body.dark {
+    --bg-color: #121212;
+    --text-color: #f1f1f1;
+    --highlight-color: #4dabf7;
+    --price-color: #ff6b6b;
+    --card-bg: #1e1e1e;
 }
-.categoria-btn.active {
-    background-color: #3b82f6;
-    color: white;
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
 }
-.dark .categoria-btn {
-    background-color: #334155;
-    color: #f1f5f9;
+
+/* Barra superior */
+.top-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background-color: var(--card-bg);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    z-index: 10;
 }
-.dark .categoria-btn:hover {
-    background-color: #475569;
+.top-bar button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    color: var(--text-color);
 }
-.dark .categoria-btn.active {
-    background-color: #2563eb;
+.top-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+/* Categorías */
+.categories {
+    position: fixed;
+    top: 50px;
+    width: 100%;
+    background-color: var(--card-bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+    z-index: 9;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.main-cats {
+    display: flex;
+    gap: 10px;
+}
+.main-cats button {
+    padding: 8px 15px;
+    border-radius: 20px;
+    border: 1px solid var(--highlight-color);
+    background: none;
+    cursor: pointer;
+    color: var(--highlight-color);
+    font-weight: bold;
+    transition: all 0.2s;
+}
+.main-cats button.active {
+    background: var(--highlight-color);
     color: white;
 }
 
-/* SUBCATEGORÍAS */
-#subcategorias-nav {
-    position: sticky;
-    top: 104px;
-    background-color: #f3f4f6;
-    z-index: 50;
-    border-bottom: 1px solid #e5e7eb;
+/* Subcategorías desplazables */
+.sub-cats {
+    margin-top: 10px;
+    display: flex;
+    overflow-x: auto;
+    gap: 10px;
+    padding-bottom: 5px;
+    scrollbar-width: none;
 }
-.dark #subcategorias-nav {
-    background-color: #1e293b;
-    border-bottom: 1px solid #334155;
+.sub-cats::-webkit-scrollbar {
+    display: none;
 }
-.subcategoria-btn {
-    flex-shrink: 0;
-    padding: 6px 14px;
-    border-radius: 9999px;
-    background-color: transparent;
-    font-size: 14px;
-    font-weight: 500;
-    white-space: nowrap;
-    transition: all 0.3s ease;
-    color: #2563eb;
+.sub-cats button {
+    flex: 0 0 auto;
+    padding: 6px 12px;
+    border-radius: 15px;
+    border: 1px solid var(--text-color);
+    background: none;
+    cursor: pointer;
+    color: var(--text-color);
+    transition: all 0.2s;
 }
-.subcategoria-btn:hover {
-    background-color: #e0e7ff;
-}
-.subcategoria-btn.active {
-    background-color: #2563eb;
+.sub-cats button.active {
+    background: var(--highlight-color);
     color: white;
-}
-.dark .subcategoria-btn {
-    color: #93c5fd;
-}
-.dark .subcategoria-btn:hover {
-    background-color: #1e40af;
-}
-.dark .subcategoria-btn.active {
-    background-color: #2563eb;
-    color: white;
+    border-color: var(--highlight-color);
 }
 
-/* PRODUCTOS */
-.producto {
-    background-color: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 12px;
-    margin-bottom: 12px;
+/* Lista de productos */
+.products {
+    margin-top: 160px; /* espacio para las barras fijas */
+    padding: 15px;
 }
-.producto h3 {
+.product {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 8px;
+    background-color: var(--card-bg);
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.product .price {
+    color: var(--price-color);
     font-weight: bold;
-}
-.producto .precio {
-    float: right;
-    font-weight: bold;
-    color: #2563eb;
-}
-.dark .producto {
-    background-color: #334155;
-    border-color: #475569;
-}
-.dark .producto h3 {
-    color: #f8fafc;
-}
-.dark .producto .precio {
-    color: #60a5fa;
 }
