@@ -9,6 +9,11 @@
     @apply bg-darkAccent text-darkText;
 }
 
+/* Estilo base para los botones de subcategoría */
+.subcategory-btn {
+    @apply flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium bg-lightCard dark:bg-darkCard hover:bg-lightAccent hover:text-white dark:hover:bg-darkAccent transition-all duration-200;
+}
+
 /* Estilo para el botón de subcategoría activo */
 .subcategory-btn.active {
     @apply bg-lightAccent text-white ring-2 ring-offset-2 ring-lightAccent dark:ring-darkAccent dark:ring-offset-darkBg;

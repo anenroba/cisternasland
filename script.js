@@ -20,8 +20,7 @@ async function main() {
         const menuData = transformData(rawData);
         
         setupEventListeners(menuData);
-        // Cargar "Drink" por defecto al iniciar
-        handleGroupClick('Drink', menuData);
+        handleGroupClick('Drink', menuData); // Cargar "Drink" por defecto
 
     } catch (error) {
         console.error("Error fatal al cargar el menú:", error);
@@ -70,7 +69,6 @@ function setupEventListeners(menuData) {
 }
 
 function handleGroupClick(groupName, allMenuData) {
-    // Resaltar botón de grupo principal
     document.querySelectorAll('.main-category-btn').forEach(btn => {
         btn.classList.toggle('active', btn.id === `${groupName.toLowerCase()}-btn`);
     });
@@ -79,7 +77,6 @@ function handleGroupClick(groupName, allMenuData) {
     renderSubCategoryButtons(subCategories);
     renderMenuItems(subCategories);
     
-    // Activar primera subcategoría por defecto
     const firstSubCategoryBtn = document.querySelector('.subcategory-btn');
     if (firstSubCategoryBtn) firstSubCategoryBtn.classList.add('active');
 }
@@ -90,14 +87,15 @@ function renderSubCategoryButtons(subCategories) {
     container.innerHTML = '';
     Object.entries(subCategories).forEach(([subCategoryName, subCategoryData]) => {
         const button = document.createElement('button');
-        button.className = 'subcategory-btn flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium bg-lightCard dark:bg-darkCard hover:bg-lightAccent hover:text-white dark:hover:bg-darkAccent transition-all duration-200';
+        // El estilo base ahora está en el CSS, aquí solo la clase principal
+        button.className = 'subcategory-btn'; 
         button.textContent = subCategoryData.name;
         button.dataset.target = `section-${subCategoryName.replace(/\s+/g, '-')}`;
 
         button.addEventListener('click', (e) => {
             const targetElement = document.getElementById(e.currentTarget.dataset.target);
             if(targetElement) {
-                const offset = 150; // Offset para los headers fijos
+                const offset = 150; 
                 const bodyRect = document.body.getBoundingClientRect().top;
                 const elementRect = targetElement.getBoundingClientRect().top;
                 const elementPosition = elementRect - bodyRect;
@@ -118,7 +116,7 @@ function renderMenuItems(subCategories) {
     Object.entries(subCategories).forEach(([subCategoryName, subCategoryData]) => {
         const section = document.createElement('section');
         section.id = `section-${subCategoryName.replace(/\s+/g, '-')}`;
-        section.className = 'scroll-mt-40 pt-6'; // Margen para el ancla del scroll
+        section.className = 'scroll-mt-40 pt-6';
 
         const title = document.createElement('h2');
         title.className = 'text-2xl font-bold mb-4';
@@ -153,9 +151,10 @@ function createIntersectionObserver() {
 
     return new IntersectionObserver((entries) => {
         entries.forEach(entry => {
-            const targetId = entry.target.id;
-            const subCategoryBtn = document.querySelector(`.subcategory-btn[data-target="${targetId}"]`);
             if (entry.isIntersecting) {
+                const targetId = entry.target.id;
+                const subCategoryBtn = document.querySelector(`.subcategory-btn[data-target="${targetId}"]`);
+                
                 document.querySelectorAll('.subcategory-btn.active').forEach(b => b.classList.remove('active'));
                 if (subCategoryBtn) {
                     subCategoryBtn.classList.add('active');
