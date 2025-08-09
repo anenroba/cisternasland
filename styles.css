@@ -1,4 +1,7 @@
-/* Estilo para el botón de categoría principal activo */
+/* Estilo para los botones de categoría principal */
+.main-category-btn {
+    @apply bg-lightCard dark:bg-darkCard hover:bg-lightAccent hover:text-white dark:hover:bg-darkAccent transition-colors duration-200;
+}
 .main-category-btn.active {
     @apply bg-lightAccent text-white;
 }
@@ -6,7 +9,7 @@
     @apply bg-darkAccent text-darkText;
 }
 
-/* Estilo para el botón de subcategoría activo (más destacado) */
+/* Estilo para el botón de subcategoría activo */
 .subcategory-btn.active {
     @apply bg-lightAccent text-white ring-2 ring-offset-2 ring-lightAccent dark:ring-darkAccent dark:ring-offset-darkBg;
 }
@@ -18,8 +21,6 @@
 #sub-category-nav::-webkit-scrollbar {
     display: none;
 }
-
-/* For Firefox */
 #sub-category-nav {
-  scrollbar-width: none;
+  scrollbar-width: none; /* For Firefox */
 }
