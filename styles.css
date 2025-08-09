@@ -1,142 +1,96 @@
-/* ------------------------------
-   Global / helpers
-   ------------------------------ */
-:root{
-  --accent: #3b82f6; /* color activo */
-  --accent-strong: #2563eb;
-  --muted: #f3f4f6;
-  --card-bg: #ffffff;
-  --text: #0f172a;
-  --subtle-border: rgba(15,23,42,0.06);
+/* Reset básico */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-/* Remove old @apply leftovers effect */
-.main-category-btn,
-.subcategory-btn {
-  box-sizing: border-box;
+/* Menú principal */
+.menu-principal {
+    position: sticky;
+    top: 0;
+    background: white;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    z-index: 1000;
 }
 
-/* ------------------------------
-   Main category (Drink / Food)
-   ------------------------------ */
-.main-category-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 10px 18px;
-  border-radius: 10px;
-  background: var(--card-bg);
-  color: var(--text);
-  border: 1px solid var(--subtle-border);
-  cursor: pointer;
-  font-weight: 600;
-  transition: background-color .18s ease, color .18s ease, box-shadow .18s ease, transform .12s ease;
+.categorias {
+    display: flex;
+    gap: 10px;
 }
 
-.main-category-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(15,23,42,0.04);
+.categoria-btn {
+    padding: 8px 14px;
+    border: none;
+    background: #f0f0f0;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 16px;
+    white-space: nowrap;
+    transition: background 0.3s, color 0.3s;
 }
 
-.main-category-btn.active {
-  background: var(--accent-strong);
-  color: #fff;
-  box-shadow: 0 10px 24px rgba(37,99,235,0.14);
-  border-color: transparent;
+.categoria-btn:hover {
+    background: #e0e0e0;
 }
 
-/* ------------------------------
-   Subcategory nav wrapper (sticky)
-   ------------------------------ */
-#sub-category-nav {
-  position: sticky;
-  top: calc(4.5rem + 0.75rem); /* ajusta si cambias alturas */
-  z-index: 40;
-  background: rgba(248,250,252,0.9); /* leve translúcido */
-  backdrop-filter: blur(6px);
-  padding-top: 8px;
-  padding-bottom: 6px;
-  border-bottom: 0; /* evita línea */
+.categoria-btn.active {
+    background: #007bff;
+    color: white;
 }
 
-/* ------------------------------
-   Subcategory container (hscroll)
-   ------------------------------ */
-/* el id que usas en el HTML: #sub-category-container */
-#sub-category-container {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 16px;
-  flex-wrap: nowrap;              /* NO bajar a otra línea */
-  overflow-x: auto;               /* permitir scroll horizontal */
-  -webkit-overflow-scrolling: touch; /* smooth en iOS */
-  white-space: nowrap;            /* evita romper texto dentro del botón */
-  scrollbar-width: none;          /* firefox */
-  -ms-overflow-style: none;       /* IE 10+ */
+/* Menú de subcategorías */
+.menu-subcategorias {
+    display: flex;
+    overflow-x: auto;
+    gap: 10px;
+    padding: 10px;
+    background: #fff;
+    border-bottom: 1px solid #ddd;
+    position: sticky;
+    top: 50px; /* justo debajo del menú principal */
+    z-index: 999;
+    scrollbar-width: none; /* Firefox */
 }
 
-/* hide scrollbar but keep scrollable (chromium / webkit) */
-#sub-category-container::-webkit-scrollbar { height: 8px; }
-#sub-category-container::-webkit-scrollbar-track { background: transparent; }
-#sub-category-container::-webkit-scrollbar-thumb { background: transparent; }
-
-/* fallback: si quieres totalmente ocultar la barra (chromium) */
-#sub-category-container.hide-scroll::-webkit-scrollbar { display: none; }
-
-/* ------------------------------
-   Subcategory buttons (pills)
-   ------------------------------ */
-.subcategory-btn {
-  flex: 0 0 auto;                 /* no se estira ni reduce */
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 14px;
-  background: #fff;
-  border-radius: 9999px;          /* pill */
-  border: 1px solid rgba(15,23,42,0.04);
-  color: #1f2937;
-  font-weight: 500;
-  font-size: 14px;
-  cursor: pointer;
-  white-space: nowrap;            /* importante: que no rote en varias líneas */
-  line-height: 1;
-  transition: background-color .18s ease, color .18s ease, box-shadow .18s ease, transform .12s ease;
-  box-shadow: 0 2px 6px rgba(15,23,42,0.03);
-  text-align: center;
+.menu-subcategorias::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
 }
 
-/* hover */
-.subcategory-btn:hover {
-  background: var(--muted);
-  transform: translateY(-2px);
+.subcategoria-btn {
+    flex: 0 0 auto;
+    padding: 6px 12px;
+    border: none;
+    background: #f5f5f5;
+    border-radius: 15px;
+    cursor: pointer;
+    font-size: 14px;
+    white-space: nowrap; /* una sola línea */
+    transition: background 0.3s, color 0.3s;
 }
 
-/* estado activo (resaltado vivo) */
-.subcategory-btn.active {
-  background: var(--accent);
-  color: white;
-  border-color: transparent;
-  box-shadow: 0 8px 22px rgba(59,130,246,0.16);
-  font-weight: 700;
+.subcategoria-btn:hover {
+    background: #ddd;
 }
 
-/* Para pantallas pequeñas: espacio lateral para que no corte */
-@media (max-width: 420px) {
-  .subcategory-btn { padding: 8px 12px; font-size: 13px; }
+.subcategoria-btn.active {
+    background: #28a745;
+    color: white;
 }
 
-/* ------------------------------
-   Ajustes visuales extra para evitar "banda" gris
-   ------------------------------ */
-/* Si hay una franja gris proveniente del track del scrollbar, forzamos transparencia */
-#sub-category-nav,
-#sub-category-container {
-  background-clip: padding-box;
-  border: none;
+/* Contenedor de productos */
+#productos-container {
+    padding: 15px;
+    display: grid;
+    gap: 15px;
 }
 
-/* asegúrate que las secciones que quedan debajo no sean tapadas por el sticky nav */
-.scroll-mt-40 { scroll-margin-top: 14rem; } /* ajusta si mueves alto de headers */
+/* Producto (ejemplo) */
+.producto {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
