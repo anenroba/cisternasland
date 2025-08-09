@@ -30,6 +30,7 @@
 <body class="font-inter antialiased transition-colors duration-300 bg-lightBg text-lightText dark:bg-darkBg dark:text-darkText">
 
     <div class="container mx-auto max-w-2xl">
+        <!-- Header -->
         <header class="sticky top-0 z-30 flex justify-between items-center py-4 px-4 bg-lightBg/80 dark:bg-darkBg/80 backdrop-blur-sm border-b border-lightBorder dark:border-darkBorder">
             <div>
                 <button id="theme-toggle" class="p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-lightAccent dark:focus:ring-darkAccent">
@@ -44,6 +45,7 @@
             </div>
         </header>
 
+        <!-- Categorías principales -->
         <nav class="sticky top-[4.5rem] z-20 mx-4 mt-2 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 shadow-inner">
             <div class="flex justify-around rounded-lg">
                 <button id="drink-btn" class="main-category-btn w-full py-2 px-4 rounded-lg text-lg font-semibold transition-all duration-300">Drink 🍺</button>
@@ -51,15 +53,16 @@
             </div>
         </nav>
         
+        <!-- Subcategorías -->
         <nav id="sub-category-nav" class="sticky top-[8.2rem] z-10 bg-lightBg/80 dark:bg-darkBg/80 backdrop-blur-sm py-3 overflow-x-auto">
-            <div id="sub-category-container" class="flex flex-nowrap gap-3 px-4">
-                 </div>
+            <div id="sub-category-container" class="flex flex-nowrap gap-3 px-4"></div>
         </nav>
 
-        <main id="menu-items-container" class="px-4 py-6">
-            </main>
+        <!-- Contenido -->
+        <main id="menu-items-container" class="px-4 py-6"></main>
     </div>
 
+    <!-- Cargando -->
     <div id="loading" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 hidden">
         <div class="bg-white dark:bg-darkCard p-6 rounded-lg shadow-lg">
             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-lightAccent dark:border-darkAccent mx-auto"></div>

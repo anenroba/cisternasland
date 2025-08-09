@@ -1,20 +1,18 @@
-/* Estilo para los botones de categoría principal (diseño de interruptor) */
+/* Botones principales */
 .main-category-btn {
-    @apply text-slate-500 dark:text-slate-400; /* Color de texto inactivo */
+    @apply text-slate-500 dark:text-slate-400;
 }
 .main-category-btn.active {
-    @apply bg-lightAccent text-white shadow-md; /* Estilo del botón activo */
+    @apply bg-lightAccent text-white shadow-md;
 }
 .dark .main-category-btn.active {
     @apply bg-darkAccent text-darkText;
 }
 
-/* Estilo base para los botones de subcategoría (diseño de texto) */
+/* Botones subcategoría */
 .subcategory-btn {
     @apply flex-shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium bg-transparent text-lightAccent dark:text-darkAccent whitespace-nowrap transition-all duration-200;
 }
-
-/* Estilo para el botón de subcategoría activo (fondo sólido) */
 .subcategory-btn.active {
     @apply bg-lightAccent text-white;
 }
@@ -22,10 +20,10 @@
     @apply bg-darkAccent text-darkText;
 }
 
-/* Ocultar la barra de scroll horizontal en el nav de subcategorías */
+/* Scroll horizontal oculto */
 #sub-category-nav::-webkit-scrollbar {
     display: none;
 }
 #sub-category-nav {
-  scrollbar-width: none; /* For Firefox */
+    scrollbar-width: none;
 }

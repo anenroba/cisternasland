@@ -1,12 +1,9 @@
-// --- CONFIGURACIÓN ---
 const API_URL = 'https://api-swa.onrender.com/api/carta';
 const DRINK_CATEGORIES = ["Botellas", "Cervezas", "Coctelería", "Degustaciones", "Gin", "Licores", "Pisco", "Ron", "Sin alcohol", "Tequila", "Vinos & Espumantes", "Vodka", "Whisky"];
 const FOOD_CATEGORIES = ["Para comenzar", "Para compartir", "Pizzas", "Sushi Especial", "Dulce Final"];
 
-// --- VARIABLES GLOBALES ---
 let menuObserver;
 
-// --- INICIALIZACIÓN ---
 document.addEventListener('DOMContentLoaded', main);
 
 async function main() {
@@ -21,17 +18,16 @@ async function main() {
         const menuData = transformData(rawData);
         
         setupEventListeners(menuData);
-        handleGroupClick('Drink', menuData);
+        handleGroupClick('Food', menuData); // Arranca en Food
 
     } catch (error) {
-        console.error("Error fatal al cargar el menú:", error);
+        console.error("Error al cargar el menú:", error);
         document.getElementById('menu-items-container').innerHTML = `<p class="text-center text-red-500">No se pudo cargar el menú.</p>`;
     } finally {
         loadingIndicator.classList.add('hidden');
     }
 }
 
-// --- MANEJO DE DATOS ---
 async function fetchData() {
     const cachedMenu = localStorage.getItem('menuData');
     if (cachedMenu) return JSON.parse(cachedMenu);
@@ -63,7 +59,6 @@ function getConsolidatedSubcategories(groupName, allMenuData) {
     return consolidated;
 }
 
-// --- MANEJO DE EVENTOS Y UI ---
 function setupEventListeners(menuData) {
     document.getElementById('drink-btn').addEventListener('click', () => handleGroupClick('Drink', menuData));
     document.getElementById('food-btn').addEventListener('click', () => handleGroupClick('Food', menuData));
@@ -100,7 +95,6 @@ function renderSubCategoryButtons(subCategories) {
                 const offset = 160; 
                 const elementPosition = targetElement.getBoundingClientRect().top + window.pageYOffset;
                 const offsetPosition = elementPosition - offset;
-
                 window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
             }
         });
@@ -149,7 +143,6 @@ function renderMenuItems(subCategories) {
     });
 }
 
-// --- UTILIDADES ---
 function escapeHtml(unsafe) {
     if (typeof unsafe !== 'string') return '';
     return unsafe
@@ -190,8 +183,7 @@ function setupTableNumber() {
         if (tableNumber && tableNumberSpan) {
             tableNumberSpan.textContent = escapeHtml(tableNumber);
         }
-    } catch (error) {
-        console.warn("No se pudo leer el número de mesa de la URL.");
+    } catch {
         if (tableNumberSpan) tableNumberSpan.textContent = '--';
     }
 }
