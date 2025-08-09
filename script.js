@@ -87,7 +87,6 @@ function renderSubCategoryButtons(subCategories) {
     container.innerHTML = '';
     Object.entries(subCategories).forEach(([subCategoryName, subCategoryData]) => {
         const button = document.createElement('button');
-        // El estilo base ahora está en el CSS, aquí solo la clase principal
         button.className = 'subcategory-btn'; 
         button.textContent = subCategoryData.name;
         button.dataset.target = `section-${subCategoryName.replace(/\s+/g, '-')}`;
