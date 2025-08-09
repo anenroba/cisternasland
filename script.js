@@ -30,10 +30,13 @@ async function init() {
     await initializeMenuData(); // Carga datos desde cache o API
     
     // Si los datos se cargaron correctamente, renderiza la vista inicial
-    if (menuData.length > 0) {
+    if (menuData && menuData.length > 0) {
         const initialCategoryName = categoryMap[currentCategory];
         const initialCategoryData = menuData.find(cat => cat.nombre_cat === initialCategoryName);
-        if (initialCategoryData && initialCategoryData.subcategorias.length > 0) {
+
+        // ----> ESTA ES LA LÍNEA CORREGIDA <----
+        // Se asegura de que 'subcategorias' exista antes de intentar leer su 'length'.
+        if (initialCategoryData && initialCategoryData.subcategorias && initialCategoryData.subcategorias.length > 0) {
             currentSubcategoryId = initialCategoryData.subcategorias[0].id_sub;
             loadSubcategories(currentCategory);
             await loadProducts(currentSubcategoryId, true);
@@ -46,14 +49,12 @@ async function init() {
 async function initializeMenuData() {
     const cachedData = localStorage.getItem(CACHE_KEY);
 
-    // CORRECCIÓN: Se verifica que cachedData no sea null ni el string "undefined"
     if (cachedData && cachedData !== 'undefined' && cachedData !== 'null') {
         console.log("Cargando datos desde localStorage...");
         try {
             menuData = JSON.parse(cachedData);
         } catch (error) {
             console.error("Error al parsear datos del cache. Obteniendo datos de la API...", error);
-            // Si el cache está corrupto, lo limpiamos y vamos a la API
             localStorage.removeItem(CACHE_KEY);
             await fetchAndCacheMenuData();
         }
@@ -231,10 +232,14 @@ function handleCategoryClick(btn) {
     
     const categoryName = categoryMap[categoryIdentifier];
     const categoryData = menuData.find(cat => cat.nombre_cat === categoryName);
-    if (categoryData && categoryData.subcategorias.length > 0) {
+    if (categoryData && categoryData.subcategorias && categoryData.subcategorias.length > 0) {
         currentSubcategoryId = categoryData.subcategorias[0].id_sub;
         loadSubcategories(currentCategory);
         loadProducts(currentSubcategoryId, true);
+    } else {
+        // Si la categoría no tiene subcategorías, limpiar la vista
+        document.getElementById('subcategoryContainer').innerHTML = '';
+        document.getElementById('productsGrid').innerHTML = `<p style="text-align:center; color: var(--text-secondary);">No hay productos en esta categoría.</p>`;
     }
 }
 
@@ -251,11 +256,14 @@ function handleSubcategoryClick(btn) {
 function handleAddToCartClick(productId, addBtn) {
     let productToAdd = null;
     for (const category of menuData) {
-        for (const subcategory of category.subcategorias) {
-            const foundProduct = subcategory.productos.find(p => p.id_prod === productId);
-            if (foundProduct) {
-                productToAdd = foundProduct;
-                break;
+        // Nos aseguramos que la categoría tenga subcategorías antes de iterar
+        if (category.subcategorias) {
+            for (const subcategory of category.subcategorias) {
+                const foundProduct = subcategory.productos.find(p => p.id_prod === productId);
+                if (foundProduct) {
+                    productToAdd = foundProduct;
+                    break;
+                }
             }
         }
         if (productToAdd) break;
