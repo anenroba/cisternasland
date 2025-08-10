@@ -810,7 +810,11 @@
             }
             
             try {
-                // Simulate sending order to database
+                // Show loading state
+                sendOrder.disabled = true;
+                sendOrder.textContent = 'Enviando...';
+                
+                // Send order to database
                 await sendOrderToDatabase(tableNumber, cart);
                 
                 // Show success notification
@@ -821,7 +825,12 @@
                 updateCartCount();
                 cartModal.classList.remove('active');
             } catch (error) {
-                showNotification('Error al enviar el pedido', 'error');
+                console.error('Error al enviar el pedido:', error);
+                showNotification(`Error al enviar el pedido: ${error.message}`, 'error');
+            } finally {
+                // Restore button state
+                sendOrder.disabled = false;
+                sendOrder.textContent = 'Enviar Pedido';
             }
         });
         
@@ -908,6 +917,7 @@
         
         // API Functions
         const API_URL = 'https://api-swa.onrender.com/api/carta';
+        const API_PEDIDOS_URL = 'https://api-swa.onrender.com/api/pedidos';
         const CACHE_KEY = 'cisternas_carta';
         const CACHE_EXPIRY_KEY = 'cisternas_carta_expiry';
         const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
@@ -1098,24 +1108,69 @@
             return { categories, subcategories, products };
         }
         
-        // Database simulation functions
+        // Send order to database
         async function sendOrderToDatabase(tableNumber, cartItems) {
-            // Simulate API call with setTimeout
-            return new Promise((resolve, reject) => {
-                setTimeout(() => {
-                    // Simulate successful order 90% of the time
-                    if (Math.random() < 0.9) {
-                        console.log('Order sent to database:', {
-                            table: tableNumber,
-                            items: cartItems,
-                            timestamp: new Date()
-                        });
-                        resolve();
+            try {
+                console.log('=== INICIANDO ENVÍO DE PEDIDO ===');
+                console.log('Número de mesa:', tableNumber);
+                console.log('Items en carrito:', cartItems.length);
+                
+                // Validar que el número de mesa sea válido
+                if (tableNumber === '--' || isNaN(parseInt(tableNumber))) {
+                    throw new Error('Número de mesa inválido');
+                }
+
+                // Agrupar items por id y contar cantidad
+                const itemsMap = {};
+                cartItems.forEach(product => {
+                    if (itemsMap[product.id]) {
+                        itemsMap[product.id].quantity++;
                     } else {
-                        reject(new Error('Database connection failed'));
+                        itemsMap[product.id] = {
+                            product_id: product.id,
+                            quantity: 1
+                        };
                     }
-                }, 1000);
-            });
+                });
+
+                const items = Object.values(itemsMap);
+                console.log('Items agrupados:', items);
+
+                // Preparar los datos para enviar según el formato esperado
+                const orderData = {
+                    table_number: parseInt(tableNumber),
+                    items: items
+                };
+                
+                console.log('Datos a enviar:', JSON.stringify(orderData, null, 2));
+
+                // Enviar la petición al endpoint real
+                console.log('Enviando petición a:', API_PEDIDOS_URL);
+                const response = await fetch(API_PEDIDOS_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(orderData)
+                });
+
+                console.log('Status de respuesta:', response.status);
+                
+                // Verificar la respuesta
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error('Error en respuesta:', errorData);
+                    throw new Error(errorData.error || `Error ${response.status}: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                console.log('Respuesta exitosa:', result);
+                console.log('=== PEDIDO ENVIADO EXITOSAMENTE ===');
+                return result;
+            } catch (error) {
+                console.error('Error al enviar el pedido:', error);
+                throw error;
+            }
         }
         
         let currentCategory = 'drink';
