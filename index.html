@@ -39,30 +39,41 @@ header {
 }
 header h1 {
   font-size: 1.2rem;
-  white-space: nowrap; /* Mantener en una sola línea */
+  white-space: nowrap;
 }
 header .left, header .center, header .right {
-  flex: 1;
   display: flex;
   align-items: center;
 }
-header .center {
-  justify-content: center;
-}
-header .right {
-  justify-content: flex-end;
-}
+header .left { gap:0.5rem; }
 .toggle-theme {
   background: none;
   border: none;
   font-size: 1.4rem;
   cursor: pointer;
 }
+.cart-btn {
+  position: relative;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.5rem;
+  margin-left: 1rem;
+}
+.cart-count {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: var(--secondary);
+  color: white;
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 50%;
+}
 
-/* ==== Category buttons + Cart ==== */
+/* ==== Category buttons ==== */
 .top-bar {
   display: flex;
-  align-items: center;
   justify-content: center;
   padding: 0.5rem 1rem;
   gap: 1rem;
@@ -87,23 +98,6 @@ header .right {
   background: var(--primary);
   color: #fff;
 }
-.cart-btn {
-  position: relative;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1.5rem;
-}
-.cart-count {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  background: var(--secondary);
-  color: white;
-  font-size: 0.7rem;
-  padding: 2px 6px;
-  border-radius: 50%;
-}
 
 /* ==== Subcategories ==== */
 .subcategories {
@@ -113,7 +107,7 @@ header .right {
   padding: 0.5rem;
   background: var(--card-bg);
   position: sticky;
-  top: 108px; /* debajo de header + category buttons */
+  top: 108px;
   z-index: 80;
 }
 .subcategories button {
@@ -186,7 +180,6 @@ header .right {
   width: 90%;
   max-width: 400px;
   padding: 1rem;
-  position: relative;
 }
 .modal-header {
   display: flex;
@@ -194,23 +187,32 @@ header .right {
   align-items: center;
 }
 .modal-header h2 { margin: 0; }
-.close-modal {
-  background: none;
-  border: none;
-  font-size: 1.2rem;
-  cursor: pointer;
-}
 .cart-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin: 0.5rem 0;
 }
-.cart-item button {
-  background: none;
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+.btn-danger {
+  background: #e84118;
+  color: white;
+  padding: 0.4rem 0.8rem;
   border: none;
+  border-radius: 4px;
   cursor: pointer;
-  font-size: 1rem;
+}
+.btn-success {
+  background: var(--secondary);
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
 </style>
 </head>
@@ -224,6 +226,7 @@ header .right {
   </div>
   <div class="right">
     Mesa: <span id="mesa-num">0</span>
+    <button class="cart-btn" id="open-cart">🛒<span class="cart-count" id="cart-count">0</span></button>
   </div>
 </header>
 
@@ -232,7 +235,6 @@ header .right {
     <button id="category-drink">Drink</button>
     <button id="category-food" class="active">Food</button>
   </div>
-  <button class="cart-btn" id="open-cart">🛒<span class="cart-count" id="cart-count">0</span></button>
 </div>
 
 <div id="subcategories" class="subcategories"></div>
@@ -244,10 +246,13 @@ header .right {
   <div class="modal-content">
     <div class="modal-header">
       <h2>Carrito</h2>
-      <button class="close-modal" id="close-cart">✖</button>
+      <button id="close-cart">✖</button>
     </div>
     <div id="cart-items"></div>
-    <button id="send-order">Enviar Pedido</button>
+    <div class="modal-actions">
+      <button class="btn-danger" id="empty-cart">Vaciar Carrito</button>
+      <button class="btn-success" id="send-order">Enviar Pedido</button>
+    </div>
   </div>
 </div>
 
@@ -258,7 +263,7 @@ let currentCategory = 'food';
 let cartaData = [];
 let cart = [];
 
-// === Theme Toggle ===
+// Theme toggle
 const themeBtn = document.getElementById('toggle-theme');
 if(localStorage.getItem('theme')==='dark'){
   document.body.classList.add('dark');
@@ -271,11 +276,11 @@ themeBtn.addEventListener('click',()=>{
   themeBtn.textContent = darkMode?'☀️':'🌙';
 });
 
-// === Mesa param ===
+// Mesa param
 const mesaParam = new URLSearchParams(window.location.search).get('mesa') || '0';
 document.getElementById('mesa-num').textContent = mesaParam;
 
-// === Fetch data ===
+// Fetch data
 async function loadCarta(){
   try {
     const res = await fetch(API_URL);
@@ -294,9 +299,12 @@ function getCategoryType(categoria){
   return drinks.includes(categoria)?'drink':'food';
 }
 
-// === Subcategories ===
 function renderSubcategories(){
-  const subs = [...new Set(cartaData.filter(i=>getCategoryType(i.categoria)===currentCategory).map(i=>i.subcategoria))];
+  let subs = [...new Set(cartaData.filter(i=>getCategoryType(i.categoria)===currentCategory).map(i=>i.subcategoria))];
+  // Mover "Dulce final" al final si existe
+  if (subs.includes('Dulce final')) {
+    subs = subs.filter(s=>s!=='Dulce final').concat('Dulce final');
+  }
   const subCont = document.getElementById('subcategories');
   subCont.innerHTML = '';
   subs.forEach(sub=>{
@@ -309,7 +317,6 @@ function renderSubcategories(){
   });
 }
 
-// === Products grouped by subcategory ===
 function renderProducts(){
   const container = document.getElementById('products-container');
   container.innerHTML = '';
@@ -344,7 +351,6 @@ function renderProducts(){
   observeSections();
 }
 
-// === IntersectionObserver para subcategorías ===
 function observeSections(){
   const buttons = document.querySelectorAll('#subcategories button');
   const sections = document.querySelectorAll('.subcategory-block');
@@ -358,7 +364,6 @@ function observeSections(){
   sections.forEach(sec=>observer.observe(sec));
 }
 
-// === Cart ===
 function addToCart(prod){
   const existing = cart.find(p=>p.id===prod.id);
   if(existing) existing.quantity++;
@@ -370,7 +375,6 @@ function updateCartCount(){
   document.getElementById('cart-count').textContent = cart.reduce((sum,p)=>sum+p.quantity,0);
 }
 
-// === Modal ===
 const cartModal = document.getElementById('cart-modal');
 document.getElementById('open-cart').addEventListener('click',()=>{
   renderCartModal();
@@ -378,6 +382,13 @@ document.getElementById('open-cart').addEventListener('click',()=>{
 });
 document.getElementById('close-cart').addEventListener('click',()=>{
   cartModal.style.display='none';
+});
+document.getElementById('empty-cart').addEventListener('click',()=>{
+  if(confirm('¿Vaciar carrito?')){
+    cart=[];
+    updateCartCount();
+    renderCartModal();
+  }
 });
 function renderCartModal(){
   const cont = document.getElementById('cart-items');
@@ -398,7 +409,6 @@ window.removeFromCart = function(id){
   renderCartModal();
 }
 
-// === Send Order ===
 document.getElementById('send-order').addEventListener('click',async()=>{
   if(cart.length===0) return alert('Carrito vacío');
   const payload = { table_number: parseInt(mesaParam), items: cart.map(i=>({product_id:i.id, quantity:i.quantity})) };
@@ -418,7 +428,6 @@ document.getElementById('send-order').addEventListener('click',async()=>{
   }
 });
 
-// === Category Switch ===
 document.getElementById('category-food').addEventListener('click',()=>{
   currentCategory='food';
   document.getElementById('category-food').classList.add('active');
