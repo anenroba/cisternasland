@@ -1022,27 +1022,39 @@
             ];
             
             console.log('Procesando datos de la API:', apiData);
+            console.log('Categorías de drink:', drinkCategories);
+            console.log('Categorías de food:', foodCategories);
             
             apiData.forEach(item => {
                 let categoryType = null;
                 
                 // Normalize category name for comparison
                 const normalizedCategory = item.categoria.trim().toLowerCase();
+                console.log(`Procesando categoría: "${item.categoria}" (normalizada: "${normalizedCategory}")`);
                 
                 // Determine if this is a drink or food category
-                if (drinkCategories.some(cat => cat.toLowerCase() === normalizedCategory)) {
+                const isDrinkCategory = drinkCategories.some(cat => cat.toLowerCase() === normalizedCategory);
+                const isFoodCategory = foodCategories.some(cat => cat.toLowerCase() === normalizedCategory);
+                
+                console.log(`¿Es categoría drink? ${isDrinkCategory}`);
+                console.log(`¿Es categoría food? ${isFoodCategory}`);
+                
+                if (isDrinkCategory) {
                     categoryType = 'drink';
-                } else if (foodCategories.some(cat => cat.toLowerCase() === normalizedCategory)) {
+                } else if (isFoodCategory) {
                     categoryType = 'food';
                 }
                 
                 if (categoryType) {
+                    console.log(`Clasificando "${item.categoria}" como ${categoryType}`);
+                    
                     // Add subcategory if not exists
                     if (!subcategories[categoryType].find(sub => sub.id === item.subcategoria)) {
                         subcategories[categoryType].push({ 
                             id: item.subcategoria, 
                             name: item.subcategoria 
                         });
+                        console.log(`Agregando subcategoría "${item.subcategoria}" a ${categoryType}`);
                     }
                     
                     // Initialize products array for this subcategory if not exists
@@ -1059,6 +1071,8 @@
                             price: product.precio
                         });
                     });
+                    
+                    console.log(`Agregando ${item.productos.length} productos a la subcategoría "${item.subcategoria}"`);
                 } else {
                     console.warn('Categoría no clasificada:', item.categoria);
                 }
@@ -1157,11 +1171,12 @@
             const subcategories = window.cartaData.subcategories[category] || [];
             
             console.log(`Cargando productos para categoría ${category}:`, subcategories);
+            console.log(`Productos disponibles:`, Object.keys(allProducts));
             
             subcategories.forEach(subcategory => {
                 const products = allProducts[subcategory.id] || [];
                 
-                console.log(`Subcategoría ${subcategory.id} tiene ${products.length} productos`);
+                console.log(`Subcategoría "${subcategory.id}" tiene ${products.length} productos`);
                 
                 if (products.length > 0) {
                     // Create section for this subcategory
@@ -1219,7 +1234,7 @@
                     section.appendChild(grid);
                     container.appendChild(section);
                 } else {
-                    console.warn(`No se encontraron productos para la subcategoría ${subcategory.id}`);
+                    console.warn(`No se encontraron productos para la subcategoría "${subcategory.id}"`);
                 }
             });
         }
