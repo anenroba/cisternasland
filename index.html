@@ -31,7 +31,7 @@ header {
   padding: 0.5rem 1rem;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   box-shadow: 0 1px 4px rgba(0,0,0,0.1);
   position: sticky;
   top:0;
@@ -41,11 +41,23 @@ header h1 {
   font-size: 1.2rem;
   white-space: nowrap;
 }
-
-/* ==== Category buttons + carrito ==== */
-.top-bar {
+header .left,
+header .right {
   display: flex;
-  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+.theme-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+}
+
+/* ==== Top bar (Drink/Food + carrito) ==== */
+.top-bar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
   padding: 0.5rem 1rem;
   position: sticky;
@@ -55,6 +67,7 @@ header h1 {
 }
 .category-buttons {
   display: flex;
+  justify-content: center;
   gap: 0.5rem;
 }
 .category-buttons button {
@@ -70,6 +83,7 @@ header h1 {
   color: #fff;
 }
 .cart-btn {
+  justify-self: end;
   position: relative;
   background: none;
   border: none;
@@ -145,7 +159,8 @@ header h1 {
   background: var(--primary);
   color: white;
   border: none;
-  padding: 0.4rem 0.6rem;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   font-size: 1.2rem;
   cursor: pointer;
@@ -206,10 +221,17 @@ header h1 {
 </head>
 <body>
 <header>
+  <div class="left">
+    <button class="theme-btn" id="theme-toggle">🌙</button>
+  </div>
   <h1>Cisternas 2039</h1>
+  <div class="right">
+    <span id="mesa-label">Mesa: 0</span>
+  </div>
 </header>
 
 <div class="top-bar">
+  <div></div>
   <div class="category-buttons">
     <button id="category-drink">Drink</button>
     <button id="category-food" class="active">Food</button>
@@ -243,58 +265,77 @@ let currentCategory = 'food';
 let cartaData = [];
 let cart = [];
 
-// Modo catálogo o pedido
+// Mesa y modo
 const mesaParam = new URLSearchParams(window.location.search).get('mesa');
 const isCatalogMode = !mesaParam || isNaN(mesaParam);
-if (!isCatalogMode) {
-  document.getElementById('open-cart').style.display = 'block';
-}
+document.getElementById('mesa-label').textContent = `Mesa: ${isCatalogMode ? 0 : mesaParam}`;
+if (!isCatalogMode) document.getElementById('open-cart').style.display = 'block';
 
-// Fetch data
-async function loadCarta(){
-  try {
-    const res = await fetch(API_URL);
-    if(!res.ok) throw new Error(`Error HTTP ${res.status}`);
-    cartaData = await res.json();
+// === Tema oscuro/claro ===
+const themeBtn = document.getElementById('theme-toggle');
+if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
+themeBtn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+themeBtn.addEventListener('click', () => {
+  document.body.classList.toggle('dark');
+  const darkMode = document.body.classList.contains('dark');
+  localStorage.setItem('theme', darkMode ? 'dark' : 'light');
+  themeBtn.textContent = darkMode ? '☀️' : '🌙';
+});
+
+// === Cargar carta desde localStorage si existe ===
+function loadFromLocalStorage() {
+  const stored = localStorage.getItem('cartaData');
+  if (stored) {
+    cartaData = JSON.parse(stored);
     renderSubcategories();
     renderProducts();
-  } catch(err) {
+  }
+}
+async function fetchCarta() {
+  try {
+    const res = await fetch(API_URL);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    cartaData = await res.json();
+    localStorage.setItem('cartaData', JSON.stringify(cartaData));
+    renderSubcategories();
+    renderProducts();
+  } catch (err) {
     console.error('Error cargando carta:', err);
-    alert('No se pudo cargar la carta.');
+    if (!cartaData.length) alert('No se pudo cargar la carta.');
   }
 }
 
-function getCategoryType(categoria){
+function getCategoryType(categoria) {
   const drinks = ['Botellas','Cervezas','Coctelería','Gin','Licores','Pisco','Ron','Tequila','Vodka','Vinos & Espumantes','Whisky','Sin alcohol','Degustaciones'];
-  return drinks.includes(categoria)?'drink':'food';
+  return drinks.includes(categoria) ? 'drink' : 'food';
 }
 
-function renderSubcategories(){
-  let subs = [...new Set(cartaData.filter(i=>getCategoryType(i.categoria)===currentCategory).map(i=>i.subcategoria))];
+function renderSubcategories() {
+  let subs = [...new Set(cartaData.filter(i => getCategoryType(i.categoria) === currentCategory).map(i => i.subcategoria))];
   if (currentCategory === 'food' && subs.includes('Dulce final')) {
-    subs = subs.filter(s=>s!=='Dulce final').concat('Dulce final');
+    subs = subs.filter(s => s !== 'Dulce final').concat('Dulce final');
   }
   const subCont = document.getElementById('subcategories');
   subCont.innerHTML = '';
-  subs.forEach(sub=>{
+  subs.forEach(sub => {
     const btn = document.createElement('button');
     btn.textContent = sub;
-    btn.addEventListener('click',()=>{
-      document.getElementById(sub).scrollIntoView({behavior:'smooth'});
+    btn.addEventListener('click', () => {
+      document.getElementById(sub).scrollIntoView({ behavior: 'smooth' });
     });
     subCont.appendChild(btn);
   });
 }
 
-function renderProducts(){
+function renderProducts() {
   const container = document.getElementById('products-container');
   container.innerHTML = '';
   const grouped = {};
-  cartaData.filter(i=>getCategoryType(i.categoria)===currentCategory).forEach(item=>{
-    if(!grouped[item.subcategoria]) grouped[item.subcategoria] = [];
+  cartaData.filter(i => getCategoryType(i.categoria) === currentCategory).forEach(item => {
+    if (!grouped[item.subcategoria]) grouped[item.subcategoria] = [];
     grouped[item.subcategoria].push(...item.productos);
   });
-  for(const sub in grouped){
+  for (const sub in grouped) {
     const block = document.createElement('div');
     block.classList.add('subcategory-block');
     block.id = sub;
@@ -302,7 +343,7 @@ function renderProducts(){
     title.classList.add('subcategory-title');
     title.textContent = sub;
     block.appendChild(title);
-    grouped[sub].forEach(prod=>{
+    grouped[sub].forEach(prod => {
       const card = document.createElement('div');
       card.classList.add('product-card');
       card.innerHTML = `
@@ -313,7 +354,7 @@ function renderProducts(){
         ${!isCatalogMode ? `<button class="add-btn">+</button>` : ''}
       `;
       if (!isCatalogMode) {
-        card.querySelector('.add-btn').addEventListener('click',()=>addToCart(prod));
+        card.querySelector('.add-btn').addEventListener('click', () => addToCart(prod));
       }
       block.appendChild(card);
     });
@@ -322,99 +363,101 @@ function renderProducts(){
   observeSections();
 }
 
-function observeSections(){
+function observeSections() {
   const buttons = document.querySelectorAll('#subcategories button');
   const sections = document.querySelectorAll('.subcategory-block');
-  const observer = new IntersectionObserver((entries)=>{
-    entries.forEach(entry=>{
-      if(entry.isIntersecting){
-        buttons.forEach(b=>b.classList.toggle('active', b.textContent===entry.target.id));
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        buttons.forEach(b => b.classList.toggle('active', b.textContent === entry.target.id));
       }
     });
-  },{threshold:0.3});
-  sections.forEach(sec=>observer.observe(sec));
+  }, { threshold: 0.3 });
+  sections.forEach(sec => observer.observe(sec));
 }
 
-function addToCart(prod){
-  const existing = cart.find(p=>p.id===prod.id);
-  if(existing) existing.quantity++;
-  else cart.push({...prod, quantity:1});
+function addToCart(prod) {
+  const existing = cart.find(p => p.id === prod.id);
+  if (existing) existing.quantity++;
+  else cart.push({ ...prod, quantity: 1 });
   updateCartCount();
 }
 
-function updateCartCount(){
-  document.getElementById('cart-count').textContent = cart.reduce((sum,p)=>sum+p.quantity,0);
+function updateCartCount() {
+  document.getElementById('cart-count').textContent = cart.reduce((sum, p) => sum + p.quantity, 0);
 }
 
 const cartModal = document.getElementById('cart-modal');
-document.getElementById('open-cart').addEventListener('click',()=>{
+document.getElementById('open-cart').addEventListener('click', () => {
   renderCartModal();
-  cartModal.style.display='flex';
+  cartModal.style.display = 'flex';
 });
-document.getElementById('close-cart').addEventListener('click',()=>{
-  cartModal.style.display='none';
+document.getElementById('close-cart').addEventListener('click', () => {
+  cartModal.style.display = 'none';
 });
-document.getElementById('empty-cart').addEventListener('click',()=>{
-  if(confirm('¿Vaciar carrito?')){
-    cart=[];
+document.getElementById('empty-cart').addEventListener('click', () => {
+  if (confirm('¿Vaciar carrito?')) {
+    cart = [];
     updateCartCount();
     renderCartModal();
   }
 });
-function renderCartModal(){
+function renderCartModal() {
   const cont = document.getElementById('cart-items');
   cont.innerHTML = '';
-  cart.forEach(item=>{
+  cart.forEach(item => {
     const div = document.createElement('div');
     div.classList.add('cart-item');
     div.innerHTML = `
-      <span>${item.nombre} x${item.quantity} - $${item.precio*item.quantity}</span>
+      <span>${item.nombre} x${item.quantity} - $${item.precio * item.quantity}</span>
       <button onclick="removeFromCart(${item.id})">🗑️</button>
     `;
     cont.appendChild(div);
   });
 }
-window.removeFromCart = function(id){
-  cart = cart.filter(p=>p.id!==id);
+window.removeFromCart = function(id) {
+  cart = cart.filter(p => p.id !== id);
   updateCartCount();
   renderCartModal();
 }
 
-document.getElementById('send-order').addEventListener('click',async()=>{
-  if(cart.length===0) return alert('Carrito vacío');
-  const payload = { table_number: parseInt(mesaParam), items: cart.map(i=>({product_id:i.id, quantity:i.quantity})) };
+document.getElementById('send-order').addEventListener('click', async () => {
+  if (cart.length === 0) return alert('Carrito vacío');
+  const payload = { table_number: parseInt(mesaParam), items: cart.map(i => ({ product_id: i.id, quantity: i.quantity })) };
   try {
-    const res = await fetch(PEDIDOS_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-    if(res.ok){
+    const res = await fetch(PEDIDOS_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    if (res.ok) {
       alert('Pedido enviado');
-      cart=[];
+      cart = [];
       updateCartCount();
-      cartModal.style.display='none';
+      cartModal.style.display = 'none';
     } else {
       alert('Error al enviar pedido');
     }
-  } catch(err){
+  } catch (err) {
     console.error('Error enviando pedido:', err);
     alert('Error de conexión');
   }
 });
 
-document.getElementById('category-food').addEventListener('click',()=>{
-  currentCategory='food';
+document.getElementById('category-food').addEventListener('click', () => {
+  currentCategory = 'food';
   document.getElementById('category-food').classList.add('active');
   document.getElementById('category-drink').classList.remove('active');
   renderSubcategories();
   renderProducts();
 });
-document.getElementById('category-drink').addEventListener('click',()=>{
-  currentCategory='drink';
+document.getElementById('category-drink').addEventListener('click', () => {
+  currentCategory = 'drink';
   document.getElementById('category-drink').classList.add('active');
   document.getElementById('category-food').classList.remove('active');
   renderSubcategories();
   renderProducts();
 });
 
-loadCarta();
+// Cargar datos
+loadFromLocalStorage();
+fetchCarta();
 </script>
 </body>
 </html>
