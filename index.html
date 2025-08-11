@@ -978,14 +978,19 @@
         
         // Process carta data and transform it for our app
         function processCartaData(apiData) {
+            console.log('Datos recibidos de la API:', apiData);
+            
             // Transform API data to our structure
             const transformedData = transformCartaData(apiData);
             
             // Store globally for access in other functions
             window.cartaData = transformedData;
             
+            console.log('Datos transformados:', transformedData);
+            
             // Load subcategories for current category
             const subcategories = transformedData.subcategories[currentCategory] || [];
+            console.log(`Subcategorías para ${currentCategory}:`, subcategories);
             renderSubcategories(subcategories);
             
             // Load all products for current category
@@ -1015,6 +1020,8 @@
                 'Para comenzar', 'Para compartir', 'Pizzas', 
                 'Sushi Especial', 'Dulce Final'
             ];
+            
+            console.log('Procesando datos de la API:', apiData);
             
             apiData.forEach(item => {
                 let categoryType = null;
@@ -1052,6 +1059,8 @@
                             price: product.precio
                         });
                     });
+                } else {
+                    console.warn('Categoría no clasificada:', item.categoria);
                 }
             });
             
@@ -1063,6 +1072,12 @@
                     subcategories.food.push(dulceFinal);
                 }
             }
+            
+            console.log('Datos transformados:', {
+                categories,
+                subcategories,
+                products: Object.keys(products)
+            });
             
             return { categories, subcategories, products };
         }
@@ -1104,6 +1119,8 @@
             const container = document.getElementById('subcategoryContainer');
             container.innerHTML = '';
             
+            console.log(`Renderizando ${subcategories.length} subcategorías`);
+            
             subcategories.forEach((sub, index) => {
                 const btn = document.createElement('button');
                 btn.className = 'subcategory-btn';
@@ -1139,8 +1156,12 @@
             
             const subcategories = window.cartaData.subcategories[category] || [];
             
+            console.log(`Cargando productos para categoría ${category}:`, subcategories);
+            
             subcategories.forEach(subcategory => {
                 const products = allProducts[subcategory.id] || [];
+                
+                console.log(`Subcategoría ${subcategory.id} tiene ${products.length} productos`);
                 
                 if (products.length > 0) {
                     // Create section for this subcategory
@@ -1148,7 +1169,7 @@
                     section.id = `product-section-${subcategory.id}`;
                     section.className = 'product-subcategory-section';
                     
-                    // Create title for this subcategory ssss
+                    // Create title for this subcategory
                     const title = document.createElement('h2');
                     title.className = 'subcategory-section-title';
                     title.textContent = subcategory.name;
@@ -1197,6 +1218,8 @@
                     
                     section.appendChild(grid);
                     container.appendChild(section);
+                } else {
+                    console.warn(`No se encontraron productos para la subcategoría ${subcategory.id}`);
                 }
             });
         }
