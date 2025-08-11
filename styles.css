@@ -56,14 +56,18 @@ body.dark{
   margin:0;
 }
 
-/* theme button */
+/* theme button redondo */
 .theme-toggle{
   background:none;
   border:0;
   font-size:1.25rem;
   cursor:pointer;
-  padding:6px;
-  border-radius:8px;
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 
 /* ---------- Top bar: categories + cart ---------- */
@@ -102,8 +106,12 @@ body.dark{
   cursor:pointer;
   font-size:1.6rem;
   position:relative;
-  padding:6px;
-  border-radius:8px;
+  width:48px;
+  height:48px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 .cart-count{
   position:absolute;
@@ -250,23 +258,23 @@ body.dark{
   padding:12px;
   border-top:1px solid rgba(0,0,0,0.06);
   display:flex;
-  gap:10px;
+  gap:12px;
 }
 .btn{
   flex:1;
-  padding:14px 12px;
+  padding:20px 12px;
   border-radius:8px;
   border:0;
   cursor:pointer;
   font-weight:700;
-  font-size:1rem;
+  font-size:1.1rem;
 }
 .btn-clear{
-  background:#ffcccc;
-  color:#b30000;
+  background:#ff4d4d;
+  color:#fff;
 }
 .btn-send{
-  background:var(--success);
+  background:#28a745;
   color:white;
 }
 
