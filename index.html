@@ -248,7 +248,7 @@ header .right {
 </div>
 
 <script>
-const API_URL = '/api/carta';
+const API_URL = 'https://api-swa.onrender.com/api/carta';
 let currentCategory = 'food';
 let cartaData = [];
 let cart = [];
@@ -391,7 +391,7 @@ window.removeFromCart = function(id){
 document.getElementById('send-order').addEventListener('click',async()=>{
   if(cart.length===0) return alert('Carrito vacío');
   const payload = { table_number: parseInt(mesaParam), items: cart.map(i=>({product_id:i.id, quantity:i.quantity})) };
-  const res = await fetch('/api/pedidos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  const res = await fetch('https://api-swa.onrender.com//api/pedidos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
   if(res.ok){
     alert('Pedido enviado');
     cart=[];
