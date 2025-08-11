@@ -5,58 +5,52 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Cisternas 2039 - Carta Digital</title>
 <link rel="stylesheet" href="styles.css">
-
-<style>
-/* (Mismos estilos que antes) */
-/* ...copiados igual que en el código previo que ya funciona... */
-</style>
 </head>
 <body>
   <!-- HEADER -->
-  <header class="header" role="banner">
+  <header class="header">
     <div class="left">
-      <button id="themeToggle" class="theme-toggle" aria-label="Cambiar tema">🌙</button>
+      <button id="themeToggle" aria-label="Cambiar tema">🌙</button>
     </div>
     <div class="center">
       <h1>Cisternas 2039</h1>
     </div>
     <div class="right">
-      <div>Mesa: <strong id="mesaLabel">0</strong></div>
+      Mesa: <strong id="mesaLabel">0</strong>
     </div>
   </header>
 
-  <!-- TOP: Drink / Food centered + cart right -->
+  <!-- Categorías principales + carrito -->
   <div class="top-bar">
-    <div></div>
-    <div class="category-buttons" role="tablist" aria-label="Categorías">
+    <div class="category-buttons">
       <button id="btnDrink" class="category-btn" data-cat="drink">Drink</button>
       <button id="btnFood" class="category-btn active" data-cat="food">Food</button>
     </div>
-    <button id="cartButton" class="cart-btn" title="Abrir carrito" style="display:none">🛒<span id="cartCount" class="cart-count">0</span></button>
+    <button id="cartButton" style="display:none">🛒<span id="cartCount">0</span></button>
   </div>
 
-  <!-- Subcategories (sticky) -->
-  <section class="subcategory-menu" aria-label="Subcategorías">
+  <!-- Subcategorías -->
+  <section class="subcategory-menu">
     <div class="subcategory-container" id="subcategoryContainer"></div>
   </section>
 
-  <!-- Products -->
-  <main class="products-section" id="productsSection" role="main">
+  <!-- Productos -->
+  <main id="productsSection">
     <div id="productsContainer"></div>
-    <div id="loadingIndicator" class="loading" style="display:none">Cargando...</div>
+    <div id="loadingIndicator" style="display:none">Cargando...</div>
   </main>
 
-  <!-- Cart modal -->
-  <div id="cartModal" class="cart-modal" aria-hidden="true">
-    <div class="cart-content" role="dialog" aria-modal="true" aria-label="Carrito de pedidos">
+  <!-- Modal carrito -->
+  <div id="cartModal" class="cart-modal">
+    <div class="cart-content">
       <div class="cart-header">
         <strong>Carrito</strong>
-        <button id="closeCart" aria-label="Cerrar">✖</button>
+        <button id="closeCart">✖</button>
       </div>
       <div id="cartItems" class="cart-items"></div>
       <div class="cart-footer">
-        <button id="clearCart" class="btn btn-clear">Vaciar Carrito</button>
-        <button id="sendOrder" class="btn btn-send">Enviar Pedido</button>
+        <button id="clearCart">Vaciar Carrito</button>
+        <button id="sendOrder">Enviar Pedido</button>
       </div>
     </div>
   </div>
@@ -70,12 +64,14 @@ const PEDIDOS_URL = 'https://api-swa.onrender.com/api/pedidos';
 let cartaData = [];
 let currentCategory = 'food';
 let cart = [];
+let sectionObserver = null; // ✅ FIX: declarada arriba
 
 const mesaParam = new URLSearchParams(window.location.search).get('mesa');
 const isCatalogMode = !mesaParam || isNaN(mesaParam);
 document.getElementById('mesaLabel').textContent = isCatalogMode ? '0' : mesaParam;
 if (!isCatalogMode) document.getElementById('cartButton').style.display = 'block';
 
+// Tema claro/oscuro
 const themeToggle = document.getElementById('themeToggle');
 const savedTheme = localStorage.getItem('theme');
 if (savedTheme === 'dark') document.body.classList.add('dark');
@@ -96,22 +92,13 @@ function showNotification(msg, bgColor='black'){
   setTimeout(()=> not.style.display = 'none', 2500);
 }
 
+// Cache local
 const CACHE_KEY = 'cisternas_carta';
 const CACHE_EXPIRY_KEY = 'cisternas_carta_expiry';
 const CACHE_DURATION = 24 * 60 * 60 * 1000;
-
-function isCacheValid(){
-  const exp = localStorage.getItem(CACHE_EXPIRY_KEY);
-  return exp && Date.now() < Number(exp);
-}
-function getCache(){
-  if(!isCacheValid()) return null;
-  try{ return JSON.parse(localStorage.getItem(CACHE_KEY)); }catch(e){ return null; }
-}
-function saveCache(data){
-  localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-  localStorage.setItem(CACHE_EXPIRY_KEY, (Date.now()+CACHE_DURATION).toString());
-}
+function isCacheValid(){ const exp = localStorage.getItem(CACHE_EXPIRY_KEY); return exp && Date.now() < Number(exp); }
+function getCache(){ if(!isCacheValid()) return null; try{ return JSON.parse(localStorage.getItem(CACHE_KEY)); }catch(e){ return null; } }
+function saveCache(data){ localStorage.setItem(CACHE_KEY, JSON.stringify(data)); localStorage.setItem(CACHE_EXPIRY_KEY, (Date.now()+CACHE_DURATION).toString()); }
 
 async function fetchCartaData(){
   document.getElementById('loadingIndicator').style.display = 'block';
@@ -228,12 +215,11 @@ function renderProducts(){
     sec.appendChild(grid);
     container.appendChild(sec);
   });
-  setupObserverForSubcategories();
+  setupObserverForSubcategories(); // ✅ Se llama después de crear secciones
 }
 
-let sectionObserver = null;
 function setupObserverForSubcategories(){
-  if(sectionObserver) sectionObserver.disconnect();
+  if (sectionObserver) sectionObserver.disconnect();
   const buttons = Array.from(document.querySelectorAll('.subcategory-btn'));
   const sections = Array.from(document.querySelectorAll('.product-subcategory-section'));
   if(sections.length === 0) return;
@@ -281,7 +267,7 @@ function renderCartModal(){
     const row = document.createElement('div');
     row.className = 'cart-item';
     row.innerHTML = `<div>${it.nombre} x${it.quantity} - ${formatPrice(it.precio * it.quantity)}</div>
-      <div><button style="background:none;border:0;cursor:pointer" onclick="removeFromCart(${it.id})">🗑️</button></div>`;
+      <div><button onclick="removeFromCart(${it.id})">🗑️</button></div>`;
     cartItemsEl.appendChild(row);
   });
 }
