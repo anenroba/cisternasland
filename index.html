@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Cisternas 2039 - Carta Digital</title>
 <style>
-/* ==== Reset ==== */
 * {margin:0;padding:0;box-sizing:border-box;}
 body {
   font-family: Arial, sans-serif;
@@ -36,10 +35,11 @@ header {
   box-shadow: 0 1px 4px rgba(0,0,0,0.1);
   position: sticky;
   top:0;
-  z-index: 10;
+  z-index: 100;
 }
 header h1 {
   font-size: 1.2rem;
+  white-space: nowrap; /* Mantener en una sola línea */
 }
 header .left, header .center, header .right {
   flex: 1;
@@ -66,6 +66,10 @@ header .right {
   justify-content: center;
   padding: 0.5rem 1rem;
   gap: 1rem;
+  position: sticky;
+  top: 56px;
+  background: var(--card-bg);
+  z-index: 90;
 }
 .category-buttons {
   display: flex;
@@ -109,8 +113,8 @@ header .right {
   padding: 0.5rem;
   background: var(--card-bg);
   position: sticky;
-  top: 56px;
-  z-index: 5;
+  top: 108px; /* debajo de header + category buttons */
+  z-index: 80;
 }
 .subcategories button {
   padding: 0.3rem 0.6rem;
@@ -173,7 +177,7 @@ header .right {
   display: none;
   align-items: center;
   justify-content: center;
-  z-index: 50;
+  z-index: 200;
 }
 .modal-content {
   background: var(--card-bg);
@@ -249,6 +253,7 @@ header .right {
 
 <script>
 const API_URL = 'https://api-swa.onrender.com/api/carta';
+const PEDIDOS_URL = 'https://api-swa.onrender.com/api/pedidos';
 let currentCategory = 'food';
 let cartaData = [];
 let cart = [];
@@ -272,10 +277,16 @@ document.getElementById('mesa-num').textContent = mesaParam;
 
 // === Fetch data ===
 async function loadCarta(){
-  const res = await fetch(API_URL);
-  cartaData = await res.json();
-  renderSubcategories();
-  renderProducts();
+  try {
+    const res = await fetch(API_URL);
+    if(!res.ok) throw new Error(`Error HTTP ${res.status}`);
+    cartaData = await res.json();
+    renderSubcategories();
+    renderProducts();
+  } catch(err) {
+    console.error('Error cargando carta:', err);
+    alert('No se pudo cargar la carta.');
+  }
 }
 
 function getCategoryType(categoria){
@@ -391,14 +402,19 @@ window.removeFromCart = function(id){
 document.getElementById('send-order').addEventListener('click',async()=>{
   if(cart.length===0) return alert('Carrito vacío');
   const payload = { table_number: parseInt(mesaParam), items: cart.map(i=>({product_id:i.id, quantity:i.quantity})) };
-  const res = await fetch('https://api-swa.onrender.com//api/pedidos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-  if(res.ok){
-    alert('Pedido enviado');
-    cart=[];
-    updateCartCount();
-    cartModal.style.display='none';
-  } else {
-    alert('Error al enviar pedido');
+  try {
+    const res = await fetch(PEDIDOS_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(res.ok){
+      alert('Pedido enviado');
+      cart=[];
+      updateCartCount();
+      cartModal.style.display='none';
+    } else {
+      alert('Error al enviar pedido');
+    }
+  } catch(err){
+    console.error('Error enviando pedido:', err);
+    alert('Error de conexión');
   }
 });
 

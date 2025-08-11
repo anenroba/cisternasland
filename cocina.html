@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cocina y Bar - Pedidos Pendientes</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f5f6fa;
+  margin: 0;
+  padding: 0;
+}
+header {
+  background: #2f3640;
+  color: white;
+  padding: 1rem;
+  text-align: center;
+}
+.container {
+  padding: 1rem;
+}
+.pedido {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.pedido-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.pedido-header h2 {
+  margin: 0;
+}
+.productos {
+  margin-top: 0.5rem;
+  padding-left: 1rem;
+}
+.producto {
+  margin-bottom: 0.3rem;
+}
+button.completar {
+  background: #44bd32;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  color: white;
+  font-weight: bold;
+  border-radius: 4px;
+  cursor: pointer;
+}
+button.completar:hover {
+  background: #38a026;
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Cocina y Bar - Pedidos Pendientes</h1>
+</header>
+<div class="container" id="pedidos-container">
+  <p>Cargando pedidos...</p>
+</div>
+
+<script>
+const API_BASE = 'https://api-swa.onrender.com/api';
+
+async function cargarPedidos() {
+  const cont = document.getElementById('pedidos-container');
+  cont.innerHTML = '<p>Cargando pedidos...</p>';
+  try {
+    const res = await fetch(`${API_BASE}/pedidos/pendientes`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const pedidos = await res.json();
+    if (pedidos.length === 0) {
+      cont.innerHTML = '<p>No hay pedidos pendientes.</p>';
+      return;
+    }
+    cont.innerHTML = '';
+    pedidos.forEach(p => {
+      const pedidoEl = document.createElement('div');
+      pedidoEl.classList.add('pedido');
+      pedidoEl.innerHTML = `
+        <div class="pedido-header">
+          <h2>Mesa ${p.mesa_id}</h2>
+          <span>${new Date(p.fecha_pedido).toLocaleTimeString()}</span>
+        </div>
+        <div>Estado: ${p.estado}</div>
+        <div class="productos">
+          ${p.productos.map(prod => `<div class="producto">${prod.cantidad} x ${prod.nombre_producto}</div>`).join('')}
+        </div>
+        <button class="completar" onclick="completarPedido(${p.pedido_id})">✅ Completar</button>
+      `;
+      cont.appendChild(pedidoEl);
+    });
+  } catch (err) {
+    console.error('Error cargando pedidos:', err);
+    cont.innerHTML = '<p>Error al cargar pedidos.</p>';
+  }
+}
+
+async function completarPedido(id) {
+  if (!confirm(`¿Marcar pedido ${id} como completado?`)) return;
+  try {
+    const res = await fetch(`${API_BASE}/pedidos/${id}/completar`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (res.ok) {
+      alert('Pedido completado.');
+      cargarPedidos();
+    } else {
+      alert('Error al completar pedido.');
+    }
+  } catch (err) {
+    console.error('Error completando pedido:', err);
+    alert('Error de conexión.');
+  }
+}
+
+cargarPedidos();
+setInterval(cargarPedidos, 30000); // refrescar cada 30s
+</script>
+</body>
+</html>
