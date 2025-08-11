@@ -1,394 +1,245 @@
-// --- CONFIGURACIÓN Y VARIABLES GLOBALES ---
-
-// URL del endpoint de la API
-const API_URL = 'https://api-swa.onrender.com/api/carta';
-// Clave para guardar los datos en localStorage
-const CACHE_KEY = 'menuCache';
-
-// Variable global para almacenar los datos del menú una vez cargados
-let menuData = [];
-
-// Estado de la aplicación
-let currentCategory = 'drink'; // 'drink' o 'food'
-let currentSubcategoryId = null; // ID numérico de la subcategoría
-let page = 0;
-let isLoading = false;
+// ================================
+// Configuración de cache y API
+// ================================
+const CACHE_KEY = 'cartaData';
+const CACHE_TIME_KEY = 'cartaDataTime';
+const CACHE_DURATION = 1 * 60 * 60 * 1000; // 1 hora en milisegundos
+const API_URL = 'https://api-swa.onrender.com//api/carta'; // Ajusta a tu backend real
+let currentCategory = 'food';
+let currentSubcategory = '';
+let cartaData = [];
+let subcategories = { food: [], drink: [] };
 let cart = [];
 
-// Mapeo de identificadores del HTML a los nombres de categoría de la API
-const categoryMap = {
-    drink: 'Bebestibles',
-    food: 'Comestibles'
-};
-
-// --- INICIALIZACIÓN DE LA APLICACIÓN ---
-
-document.addEventListener('DOMContentLoaded', init);
-
-async function init() {
-    setupEventListeners();
-    await initializeMenuData(); // Carga datos desde cache o API
-    
-    // Si los datos se cargaron correctamente, renderiza la vista inicial
-    if (menuData && menuData.length > 0) {
-        const initialCategoryName = categoryMap[currentCategory];
-        const initialCategoryData = menuData.find(cat => cat.nombre_cat === initialCategoryName);
-
-        // ----> ESTA ES LA LÍNEA CORREGIDA <----
-        // Se asegura de que 'subcategorias' exista antes de intentar leer su 'length'.
-        if (initialCategoryData && initialCategoryData.subcategorias && initialCategoryData.subcategorias.length > 0) {
-            currentSubcategoryId = initialCategoryData.subcategorias[0].id_sub;
-            loadSubcategories(currentCategory);
-            await loadProducts(currentSubcategoryId, true);
-        }
-    }
-}
-
-// --- LÓGICA DE DATOS (CACHE Y API) ---
-
-async function initializeMenuData() {
-    const cachedData = localStorage.getItem(CACHE_KEY);
-
-    if (cachedData && cachedData !== 'undefined' && cachedData !== 'null') {
-        console.log("Cargando datos desde localStorage...");
-        try {
-            menuData = JSON.parse(cachedData);
-        } catch (error) {
-            console.error("Error al parsear datos del cache. Obteniendo datos de la API...", error);
-            localStorage.removeItem(CACHE_KEY);
-            await fetchAndCacheMenuData();
-        }
-    } else {
-        console.log("No hay cache válido. Obteniendo datos desde la API...");
-        await fetchAndCacheMenuData();
-    }
-}
-
-// Función auxiliar para obtener y guardar los datos de la API, evitando código duplicado
-async function fetchAndCacheMenuData() {
+// ================================
+// Cargar carta desde API con cache
+// ================================
+async function fetchCartaDataFromAPI() {
+  try {
+    const response = await fetch(API_URL);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    let data;
     try {
-        const response = await fetch(API_URL);
-        if (!response.ok) {
-            throw new Error(`Error de red: ${response.statusText}`);
-        }
-        const data = await response.json();
-        menuData = data.carta; // Extraemos el arreglo 'carta'
-        localStorage.setItem(CACHE_KEY, JSON.stringify(menuData));
-        console.log("Datos guardados en localStorage.");
-    } catch (error) {
-        console.error("No se pudo obtener el menú:", error);
-        document.getElementById('productsGrid').innerHTML = '<p style="text-align:center; color: var(--text-secondary);">No hemos podido cargar el menú. Por favor, intenta recargar la página.</p>';
+      data = await response.json();
+    } catch {
+      throw new Error(`Respuesta no válida del servidor`);
     }
+    return data;
+  } catch (error) {
+    console.error('Error al obtener carta:', error);
+    throw error;
+  }
 }
 
+async function loadCartaData() {
+  const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
+  const cachedData = localStorage.getItem(CACHE_KEY);
 
-// --- RENDERIZADO DE LA INTERFAZ ---
-
-function loadSubcategories(categoryIdentifier) {
-    const container = document.getElementById('subcategoryContainer');
-    container.innerHTML = '';
-
-    const categoryName = categoryMap[categoryIdentifier];
-    const categoryData = menuData.find(cat => cat.nombre_cat === categoryName);
-
-    if (categoryData && categoryData.subcategorias) {
-        categoryData.subcategorias.forEach(sub => {
-            const btn = document.createElement('button');
-            btn.className = 'subcategory-btn';
-            btn.textContent = sub.nombre_sub;
-            btn.setAttribute('data-subcategory-id', sub.id_sub);
-
-            if (sub.id_sub === currentSubcategoryId) {
-                btn.classList.add('active');
-            }
-            container.appendChild(btn);
-        });
-    }
+  if (cachedTime && cachedData && Date.now() - parseInt(cachedTime) < CACHE_DURATION) {
+    cartaData = JSON.parse(cachedData);
+    processCartaData(cartaData);
+  } else {
+    const data = await fetchCartaDataFromAPI();
+    cartaData = data;
+    localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+    localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
+    processCartaData(data);
+  }
 }
 
-async function loadProducts(subcategoryId, reset = false) {
-    if (isLoading) return;
-    isLoading = true;
-    document.getElementById('loadingIndicator').style.display = 'flex';
+// ================================
+// Procesar carta para categorías y subcategorías
+// ================================
+function processCartaData(data) {
+  subcategories = { food: [], drink: [] };
 
-    if (reset) {
-        document.getElementById('productsGrid').innerHTML = '';
-        page = 0;
+  data.forEach(item => {
+    const categoryType = getCategoryType(item.categoria);
+    const normalizedSub = item.subcategoria.toLowerCase();
+    if (!subcategories[categoryType].find(sub => sub.nombre.toLowerCase() === normalizedSub)) {
+      subcategories[categoryType].push({ nombre: item.subcategoria });
     }
+  });
 
-    await new Promise(resolve => setTimeout(resolve, 500)); 
+  renderSubcategories(currentCategory);
 
-    let products = [];
-    // Encontrar los productos para la subcategoría dada
-    for (const category of menuData) {
-        const subcategory = category.subcategorias.find(sub => sub.id_sub === subcategoryId);
-        if (subcategory) {
-            products = subcategory.productos || [];
-            break;
-        }
-    }
-
-    const startIndex = page * 8;
-    const endIndex = startIndex + 8;
-    const pageProducts = products.slice(startIndex, endIndex);
-
-    if (pageProducts.length > 0) {
-        renderProducts(pageProducts);
-        page++;
-    }
-
-    isLoading = false;
-    document.getElementById('loadingIndicator').style.display = 'none';
+  // Asignar subcategoría inicial
+  if (subcategories[currentCategory].length > 0) {
+    currentSubcategory = subcategories[currentCategory][0].nombre;
+    renderProducts(currentCategory, currentSubcategory);
+    highlightActiveSubcategory(currentSubcategory);
+  }
 }
 
-function renderProducts(products) {
-    const grid = document.getElementById('productsGrid');
-    products.forEach(product => {
+function getCategoryType(categoria) {
+  const drinkCategories = [
+    'Botellas', 'Cervezas', 'Coctelería', 'Gin', 'Licores', 'Pisco',
+    'Ron', 'Tequila', 'Vodka', 'Vinos & Espumantes', 'Whisky', 'Sin alcohol', 'Degustaciones'
+  ];
+  return drinkCategories.includes(categoria) ? 'drink' : 'food';
+}
+
+// ================================
+// Renderizado de subcategorías
+// ================================
+function renderSubcategories(categoryType) {
+  const subcatContainer = document.getElementById('subcategories');
+  subcatContainer.innerHTML = '';
+  subcategories[categoryType].forEach(sub => {
+    const btn = document.createElement('button');
+    btn.textContent = sub.nombre;
+    btn.addEventListener('click', () => {
+      currentSubcategory = sub.nombre;
+      renderProducts(categoryType, sub.nombre);
+      highlightActiveSubcategory(sub.nombre);
+    });
+    subcatContainer.appendChild(btn);
+  });
+}
+
+function highlightActiveSubcategory(subcategoryName) {
+  document.querySelectorAll('#subcategories button').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent === subcategoryName);
+  });
+}
+
+// ================================
+// Renderizado de productos
+// ================================
+function renderProducts(categoryType, subcategoryName) {
+  const productList = document.getElementById('product-list');
+  productList.innerHTML = '';
+
+  cartaData
+    .filter(item => getCategoryType(item.categoria) === categoryType && item.subcategoria === subcategoryName)
+    .forEach(item => {
+      item.productos.forEach(product => {
         const card = document.createElement('div');
-        card.className = 'product-card';
-
-        const imageUrl = product.foto || `https://picsum.photos/seed/${product.id_prod}/200/200.jpg`;
-
+        card.classList.add('product-card');
         card.innerHTML = `
-            <div class="product-thumbnail" style="background-image: url('${imageUrl}')"></div>
-            <div class="product-info">
-                <div class="product-header">
-                    <h3 class="product-name">${product.nombre_prod}</h3>
-                    <span class="product-price">${formatPrice(product.precio)}</span>
-                </div>
-                <p class="product-description">${product.descripcion}</p>
-                <button class="add-btn" data-product-id="${product.id_prod}">
-                    <i class="fas fa-plus"></i>
-                </button>
-            </div>
+          <h3>${product.nombre}</h3>
+          <p>${product.descripcion || ''}</p>
+          <span>$${product.precio}</span>
+          <button class="add-btn" data-product="${encodeURIComponent(JSON.stringify(product))}">Agregar</button>
         `;
-        grid.appendChild(card);
+        card.querySelector('.add-btn').addEventListener('click', e => {
+          const prod = JSON.parse(decodeURIComponent(e.target.getAttribute('data-product')));
+          addToCart(prod);
+        });
+        productList.appendChild(card);
+      });
     });
 }
 
-// --- MANEJO DE EVENTOS (LISTENERS) ---
-
-function setupEventListeners() {
-    // Theme toggle
-    const themeToggle = document.getElementById('themeToggle');
-    themeToggle.addEventListener('click', toggleTheme);
-
-    // Botones de categoría principal (Drink/Food)
-    document.querySelectorAll('.category-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => handleCategoryClick(e.currentTarget));
-    });
-
-    // Contenedor de subcategorías (delegación de eventos)
-    document.getElementById('subcategoryContainer').addEventListener('click', (e) => {
-        if (e.target.matches('.subcategory-btn')) {
-            handleSubcategoryClick(e.target);
-        }
-    });
-
-    // Grid de productos para añadir al carrito (delegación de eventos)
-    document.getElementById('productsGrid').addEventListener('click', (e) => {
-        const addBtn = e.target.closest('.add-btn');
-        if (addBtn) {
-            const productId = parseInt(addBtn.getAttribute('data-product-id'), 10);
-            handleAddToCartClick(productId, addBtn);
-        }
-    });
-
-    // Scroll infinito
-    window.addEventListener('scroll', () => {
-        if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500 && !isLoading) {
-            loadProducts(currentSubcategoryId, false);
-        }
-    });
-
-    // Funcionalidad del carrito
-    document.getElementById('cartBtn').addEventListener('click', openCartModal);
-    document.getElementById('closeCart').addEventListener('click', closeCartModal);
-    document.getElementById('cartModal').addEventListener('click', (e) => {
-        if (e.target === document.getElementById('cartModal')) closeCartModal();
-    });
-    document.getElementById('clearCart').addEventListener('click', clearCart);
-    document.getElementById('checkout').addEventListener('click', checkout);
-    document.getElementById('cartItems').addEventListener('click', (e) => {
-        const removeBtn = e.target.closest('.cart-item-remove');
-        if (removeBtn) {
-            const cartIndex = parseInt(removeBtn.getAttribute('data-index'), 10);
-            removeFromCart(cartIndex);
-        }
-    });
-
-    // Cargar estado inicial del tema y número de mesa
-    initializeTheme();
-    initializeTableNumber();
+// ================================
+// Carrito
+// ================================
+function addToCart(product) {
+  const existing = cart.find(p => p.id === product.id);
+  if (existing) {
+    existing.quantity++;
+  } else {
+    cart.push({ ...product, quantity: 1 });
+  }
+  renderCart();
 }
 
-function handleCategoryClick(btn) {
-    const categoryIdentifier = btn.getAttribute('data-category');
-    if (categoryIdentifier === currentCategory) return;
-
-    currentCategory = categoryIdentifier;
-    document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    
-    const categoryName = categoryMap[categoryIdentifier];
-    const categoryData = menuData.find(cat => cat.nombre_cat === categoryName);
-    if (categoryData && categoryData.subcategorias && categoryData.subcategorias.length > 0) {
-        currentSubcategoryId = categoryData.subcategorias[0].id_sub;
-        loadSubcategories(currentCategory);
-        loadProducts(currentSubcategoryId, true);
-    } else {
-        // Si la categoría no tiene subcategorías, limpiar la vista
-        document.getElementById('subcategoryContainer').innerHTML = '';
-        document.getElementById('productsGrid').innerHTML = `<p style="text-align:center; color: var(--text-secondary);">No hay productos en esta categoría.</p>`;
-    }
+function removeFromCart(productId) {
+  const itemEl = document.querySelector(`.cart-item[data-id="${productId}"]`);
+  if (itemEl) {
+    itemEl.classList.add('fade-out');
+    setTimeout(() => {
+      cart = cart.filter(p => p.id !== productId);
+      renderCart();
+    }, 300);
+  }
 }
 
-function handleSubcategoryClick(btn) {
-    const subcategoryId = parseInt(btn.getAttribute('data-subcategory-id'), 10);
-    if (subcategoryId === currentSubcategoryId) return;
-
-    currentSubcategoryId = subcategoryId;
-    document.querySelectorAll('.subcategory-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    loadProducts(currentSubcategoryId, true);
+function renderCart() {
+  const cartList = document.getElementById('cart-items');
+  cartList.innerHTML = '';
+  cart.forEach(item => {
+    const li = document.createElement('li');
+    li.classList.add('cart-item');
+    li.setAttribute('data-id', item.id);
+    li.innerHTML = `
+      ${item.nombre} x${item.quantity} - $${item.precio * item.quantity}
+      <button onclick="removeFromCart(${item.id})">X</button>
+    `;
+    cartList.appendChild(li);
+  });
 }
 
-function handleAddToCartClick(productId, addBtn) {
-    let productToAdd = null;
-    for (const category of menuData) {
-        // Nos aseguramos que la categoría tenga subcategorías antes de iterar
-        if (category.subcategorias) {
-            for (const subcategory of category.subcategorias) {
-                const foundProduct = subcategory.productos.find(p => p.id_prod === productId);
-                if (foundProduct) {
-                    productToAdd = foundProduct;
-                    break;
-                }
-            }
-        }
-        if (productToAdd) break;
+// ================================
+// Enviar pedido
+// ================================
+async function sendOrder() {
+  if (cart.length === 0) {
+    alert('El carrito está vacío.');
+    return;
+  }
+
+  const tableNumber = prompt('Ingrese número de mesa:');
+  if (!tableNumber) return;
+
+  const payload = {
+    table_number: parseInt(tableNumber),
+    items: cart.map(item => ({
+      product_id: item.id,
+      quantity: item.quantity
+    }))
+  };
+
+  try {
+    const response = await fetch('https://api-swa.onrender.com//api/pedidos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    let result;
+    try {
+      result = await response.json();
+    } catch {
+      throw new Error(`Error inesperado del servidor (${response.status})`);
     }
 
-    if (productToAdd) {
-        cart.push(productToAdd);
-        updateCartCount();
-        
-        addBtn.style.backgroundColor = 'var(--price-color)';
-        setTimeout(() => { addBtn.style.backgroundColor = ''; }, 300);
-    }
-}
+    if (!response.ok) throw new Error(result.message || 'Error al enviar el pedido.');
 
-
-// --- FUNCIONALIDAD DEL CARRITO ---
-
-function openCartModal() {
-    renderCartItems();
-    document.getElementById('cartModal').classList.add('active');
-}
-
-function closeCartModal() {
-    document.getElementById('cartModal').classList.remove('active');
-}
-
-function updateCartCount() {
-    const cartCountEl = document.getElementById('cartCount');
-    cartCountEl.textContent = cart.length;
-    cartCountEl.style.display = cart.length > 0 ? 'flex' : 'none';
-}
-
-function clearCart() {
+    alert('Pedido enviado con éxito.');
     cart = [];
-    updateCartCount();
-    renderCartItems();
+    renderCart();
+  } catch (error) {
+    console.error('Error al enviar pedido:', error);
+    alert(error.message);
+  }
 }
 
-function removeFromCart(index) {
-    cart.splice(index, 1);
-    updateCartCount();
-    renderCartItems();
-}
+// ================================
+// Inicialización
+// ================================
+document.addEventListener('DOMContentLoaded', () => {
+  loadCartaData();
 
-function renderCartItems() {
-    const cartItemsContainer = document.getElementById('cartItems');
-    const cartTotalEl = document.getElementById('cartTotal');
-    
-    if (cart.length === 0) {
-        cartItemsContainer.innerHTML = `
-            <div class="cart-empty">
-                <i class="fas fa-shopping-cart"></i><p>Tu carrito está vacío</p>
-            </div>`;
-        cartTotalEl.textContent = formatPrice(0);
-        return;
+  document.getElementById('send-order').addEventListener('click', sendOrder);
+
+  document.getElementById('category-food').addEventListener('click', () => {
+    currentCategory = 'food';
+    renderSubcategories('food');
+    if (subcategories.food.length > 0) {
+      currentSubcategory = subcategories.food[0].nombre;
+      renderProducts('food', currentSubcategory);
+      highlightActiveSubcategory(currentSubcategory);
     }
+  });
 
-    cartItemsContainer.innerHTML = '';
-    let total = 0;
-    cart.forEach((item, index) => {
-        total += item.precio;
-        const imageUrl = item.foto || `https://picsum.photos/seed/${item.id_prod}/200/200.jpg`;
-        const cartItem = document.createElement('div');
-        cartItem.className = 'cart-item';
-        cartItem.innerHTML = `
-            <div class="cart-item-image" style="background-image: url('${imageUrl}')"></div>
-            <div class="cart-item-info">
-                <div class="cart-item-name">${item.nombre_prod}</div>
-                <div class="cart-item-price">${formatPrice(item.precio)}</div>
-            </div>
-            <button class="cart-item-remove" data-index="${index}">
-                <i class="fas fa-trash"></i>
-            </button>`;
-        cartItemsContainer.appendChild(cartItem);
-    });
-
-    cartTotalEl.textContent = formatPrice(total);
-}
-
-function checkout() {
-    if (cart.length === 0) {
-        alert('El carrito está vacío');
-        return;
+  document.getElementById('category-drink').addEventListener('click', () => {
+    currentCategory = 'drink';
+    renderSubcategories('drink');
+    if (subcategories.drink.length > 0) {
+      currentSubcategory = subcategories.drink[0].nombre;
+      renderProducts('drink', currentSubcategory);
+      highlightActiveSubcategory(currentSubcategory);
     }
-    const total = cart.reduce((sum, item) => sum + item.precio, 0);
-    const tableNumber = document.getElementById('tableNumber').textContent;
-    alert(`Pedido enviado a la mesa ${tableNumber}\n\nTotal: ${formatPrice(total)}\n\n¡Gracias por tu compra!`);
-    
-    clearCart();
-    closeCartModal();
-}
-
-
-// --- FUNCIONES UTILITARIAS ---
-
-function formatPrice(price) {
-    return '$' + (price || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-}
-
-function initializeTheme() {
-    const themeToggle = document.getElementById('themeToggle');
-    const themeIcon = themeToggle.querySelector('i');
-    const currentTheme = localStorage.getItem('theme') || 'light';
-    if (currentTheme === 'dark') {
-        document.body.setAttribute('data-theme', 'dark');
-        themeIcon.classList.replace('fa-moon', 'fa-sun');
-    }
-}
-
-function toggleTheme() {
-    const themeToggle = document.getElementById('themeToggle');
-    const themeIcon = themeToggle.querySelector('i');
-    if (document.body.getAttribute('data-theme') === 'dark') {
-        document.body.removeAttribute('data-theme');
-        themeIcon.classList.replace('fa-sun', 'fa-moon');
-        localStorage.setItem('theme', 'light');
-    } else {
-        document.body.setAttribute('data-theme', 'dark');
-        themeIcon.classList.replace('fa-moon', 'fa-sun');
-        localStorage.setItem('theme', 'dark');
-    }
-}
-
-function initializeTableNumber() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const tableNumber = urlParams.get('mesa') || '--';
-    document.getElementById('tableNumber').textContent = tableNumber;
-}
+  });
+});
