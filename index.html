@@ -1,55 +1,342 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Cisternas 2039 - Carta Digital</title>
+<link rel="stylesheet" href="styles.css">
+
+<style>
+/* (Mismos estilos que antes) */
+/* ...copiados igual que en el código previo que ya funciona... */
+</style>
+</head>
 <body>
-  <!-- Header -->
-  <header class="header">
+  <!-- HEADER -->
+  <header class="header" role="banner">
     <div class="left">
-      <button id="themeToggle" class="theme-toggle">🌙</button>
+      <button id="themeToggle" class="theme-toggle" aria-label="Cambiar tema">🌙</button>
     </div>
     <div class="center">
       <h1>Cisternas 2039</h1>
     </div>
     <div class="right">
-      <span>Mesa: <strong id="mesa-numero">0</strong></span>
+      <div>Mesa: <strong id="mesaLabel">0</strong></div>
     </div>
   </header>
 
-  <!-- Top bar -->
+  <!-- TOP: Drink / Food centered + cart right -->
   <div class="top-bar">
-    <div class="category-buttons">
-      <button class="category-btn active" data-category="drink">Drink</button>
-      <button class="category-btn" data-category="food">Food</button>
+    <div></div>
+    <div class="category-buttons" role="tablist" aria-label="Categorías">
+      <button id="btnDrink" class="category-btn" data-cat="drink">Drink</button>
+      <button id="btnFood" class="category-btn active" data-cat="food">Food</button>
     </div>
-    <button id="cartBtn" class="cart-btn">
-      🛒
-      <span id="cartCount" class="cart-count">0</span>
-    </button>
+    <button id="cartButton" class="cart-btn" title="Abrir carrito" style="display:none">🛒<span id="cartCount" class="cart-count">0</span></button>
   </div>
 
-  <!-- Subcategories -->
-  <div class="subcategory-menu">
-    <div class="subcategory-container" id="subcategoryContainer">
-      <!-- Botones de subcategoría dinámicos -->
-    </div>
-  </div>
+  <!-- Subcategories (sticky) -->
+  <section class="subcategory-menu" aria-label="Subcategorías">
+    <div class="subcategory-container" id="subcategoryContainer"></div>
+  </section>
 
   <!-- Products -->
-  <main class="products-section" id="productsSection">
-    <!-- Productos dinámicos -->
+  <main class="products-section" id="productsSection" role="main">
+    <div id="productsContainer"></div>
+    <div id="loadingIndicator" class="loading" style="display:none">Cargando...</div>
   </main>
 
-  <!-- Cart Modal -->
-  <div id="cartModal" class="cart-modal">
-    <div class="cart-content">
+  <!-- Cart modal -->
+  <div id="cartModal" class="cart-modal" aria-hidden="true">
+    <div class="cart-content" role="dialog" aria-modal="true" aria-label="Carrito de pedidos">
       <div class="cart-header">
-        <h2>Carrito</h2>
-        <button id="closeCart" class="theme-toggle">✖</button>
+        <strong>Carrito</strong>
+        <button id="closeCart" aria-label="Cerrar">✖</button>
       </div>
-      <div class="cart-items" id="cartItems">
-        <!-- Items del carrito -->
-      </div>
+      <div id="cartItems" class="cart-items"></div>
       <div class="cart-footer">
-        <button id="clearCart" class="btn btn-clear">Vaciar carrito</button>
-        <button id="sendOrder" class="btn btn-send">Enviar pedido</button>
+        <button id="clearCart" class="btn btn-clear">Vaciar Carrito</button>
+        <button id="sendOrder" class="btn btn-send">Enviar Pedido</button>
       </div>
     </div>
   </div>
+
+  <div id="notification" class="notification"></div>
+
+<script>
+const API_URL = 'https://api-swa.onrender.com/api/carta';
+const PEDIDOS_URL = 'https://api-swa.onrender.com/api/pedidos';
+
+let cartaData = [];
+let currentCategory = 'food';
+let cart = [];
+
+const mesaParam = new URLSearchParams(window.location.search).get('mesa');
+const isCatalogMode = !mesaParam || isNaN(mesaParam);
+document.getElementById('mesaLabel').textContent = isCatalogMode ? '0' : mesaParam;
+if (!isCatalogMode) document.getElementById('cartButton').style.display = 'block';
+
+const themeToggle = document.getElementById('themeToggle');
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme === 'dark') document.body.classList.add('dark');
+themeToggle.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+themeToggle.addEventListener('click', () => {
+  document.body.classList.toggle('dark');
+  const dark = document.body.classList.contains('dark');
+  localStorage.setItem('theme', dark ? 'dark' : 'light');
+  themeToggle.textContent = dark ? '☀️' : '🌙';
+});
+
+function formatPrice(n){ return '$' + Number(n).toLocaleString('es-CL'); }
+function showNotification(msg, bgColor='black'){
+  const not = document.getElementById('notification');
+  not.style.background = bgColor;
+  not.textContent = msg;
+  not.style.display = 'block';
+  setTimeout(()=> not.style.display = 'none', 2500);
+}
+
+const CACHE_KEY = 'cisternas_carta';
+const CACHE_EXPIRY_KEY = 'cisternas_carta_expiry';
+const CACHE_DURATION = 24 * 60 * 60 * 1000;
+
+function isCacheValid(){
+  const exp = localStorage.getItem(CACHE_EXPIRY_KEY);
+  return exp && Date.now() < Number(exp);
+}
+function getCache(){
+  if(!isCacheValid()) return null;
+  try{ return JSON.parse(localStorage.getItem(CACHE_KEY)); }catch(e){ return null; }
+}
+function saveCache(data){
+  localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+  localStorage.setItem(CACHE_EXPIRY_KEY, (Date.now()+CACHE_DURATION).toString());
+}
+
+async function fetchCartaData(){
+  document.getElementById('loadingIndicator').style.display = 'block';
+  try{
+    const res = await fetch(API_URL);
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    cartaData = data;
+    saveCache(data);
+    renderAll();
+  }catch(err){
+    showNotification('No se pudo cargar la carta', 'crimson');
+    const cached = getCache();
+    if(cached){
+      cartaData = cached;
+      renderAll();
+    }
+  }finally{
+    document.getElementById('loadingIndicator').style.display = 'none';
+  }
+}
+
+const cached = getCache();
+if(cached){ cartaData = cached; renderAll(); }
+fetchCartaData().catch(()=>{});
+
+function getCategoryType(cat){
+  const drinks = ['Botellas','Cervezas','Coctelería','Gin','Licores','Pisco','Ron','Sin alcohol','Tequila','Vinos & Espumantes','Vodka','Whisky','Degustaciones'];
+  return drinks.some(d => d.toLowerCase() === (cat||'').toLowerCase()) ? 'drink' : 'food';
+}
+
+function renderSubcategories(){
+  const subContainer = document.getElementById('subcategoryContainer');
+  subContainer.innerHTML = '';
+  const subs = Array.from(new Set(
+    cartaData
+      .filter(i => getCategoryType(i.categoria) === currentCategory)
+      .map(i => String(i.subcategoria || '').trim())
+      .filter(Boolean)
+  ));
+  subs.sort((a,b)=>{
+    const la = a.toLowerCase();
+    const lb = b.toLowerCase();
+    if(la === 'dulce final') return 1;
+    if(lb === 'dulce final') return -1;
+    return la.localeCompare(lb, 'es');
+  });
+  subs.forEach(sub=>{
+    const btn = document.createElement('button');
+    btn.className = 'subcategory-btn';
+    btn.textContent = sub;
+    btn.addEventListener('click', ()=> {
+      document.getElementById(idFromSub(sub))?.scrollIntoView({behavior:'smooth', block:'start'});
+    });
+    subContainer.appendChild(btn);
+  });
+}
+
+function idFromSub(sub){
+  return 'sub-' + encodeURIComponent(sub).replace(/%/g,'');
+}
+
+function renderProducts(){
+  const container = document.getElementById('productsContainer');
+  container.innerHTML = '';
+  const grouped = {};
+  cartaData
+    .filter(i => getCategoryType(i.categoria) === currentCategory)
+    .forEach(item => {
+      const sub = String(item.subcategoria || '').trim();
+      if(!grouped[sub]) grouped[sub] = [];
+      (item.productos || []).forEach(p => grouped[sub].push(p));
+    });
+  const subKeys = Object.keys(grouped).filter(Boolean).sort((a,b)=>{
+    const la = a.toLowerCase();
+    const lb = b.toLowerCase();
+    if(la === 'dulce final') return 1;
+    if(lb === 'dulce final') return -1;
+    return la.localeCompare(lb, 'es');
+  });
+  subKeys.forEach(sub=>{
+    const sec = document.createElement('section');
+    sec.id = idFromSub(sub);
+    sec.className = 'product-subcategory-section';
+    const title = document.createElement('h2');
+    title.className = 'subcategory-section-title';
+    title.textContent = sub;
+    sec.appendChild(title);
+    const grid = document.createElement('div');
+    grid.className = 'products-grid';
+    grouped[sub].forEach(prod=>{
+      const card = document.createElement('article');
+      card.className = 'product-card';
+      const header = document.createElement('div');
+      header.className = 'product-header';
+      const nameDiv = document.createElement('div');
+      nameDiv.className = 'product-name';
+      nameDiv.textContent = prod.nombre || '';
+      header.appendChild(nameDiv);
+      if(!isCatalogMode){
+        const add = document.createElement('button');
+        add.className = 'add-btn';
+        add.innerHTML = '+';
+        add.addEventListener('click', ()=> addToCart(prod));
+        header.appendChild(add);
+      }
+      card.appendChild(header);
+      const price = document.createElement('div');
+      price.className = 'product-price';
+      price.textContent = formatPrice(prod.precio || 0);
+      card.appendChild(price);
+      grid.appendChild(card);
+    });
+    sec.appendChild(grid);
+    container.appendChild(sec);
+  });
+  setupObserverForSubcategories();
+}
+
+let sectionObserver = null;
+function setupObserverForSubcategories(){
+  if(sectionObserver) sectionObserver.disconnect();
+  const buttons = Array.from(document.querySelectorAll('.subcategory-btn'));
+  const sections = Array.from(document.querySelectorAll('.product-subcategory-section'));
+  if(sections.length === 0) return;
+  sectionObserver = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting){
+        const id = entry.target.id;
+        buttons.forEach(btn => {
+          const targetId = idFromSub(btn.textContent);
+          const active = targetId === id;
+          btn.classList.toggle('active', active);
+          if(active){
+            btn.scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'});
+          }
+        });
+      }
+    });
+  }, {threshold: 0.35, root: null, rootMargin: '-20% 0px -50% 0px'});
+  sections.forEach(s => sectionObserver.observe(s));
+}
+
+function renderAll(){
+  renderSubcategories();
+  renderProducts();
+}
+
+function addToCart(prod){
+  const ex = cart.find(it => Number(it.id) === Number(prod.id));
+  if(ex) ex.quantity++;
+  else cart.push({ id: prod.id, nombre: prod.nombre, precio: prod.precio, quantity: 1 });
+  renderCartCount();
+}
+
+function renderCartCount(){
+  document.getElementById('cartCount').textContent = cart.reduce((s,i)=> s + (i.quantity||0), 0);
+}
+function renderCartModal(){
+  const cartItemsEl = document.getElementById('cartItems');
+  cartItemsEl.innerHTML = '';
+  if(cart.length === 0){
+    cartItemsEl.innerHTML = '<div style="padding:18px;color:var(--muted)">Carrito vacío</div>';
+    return;
+  }
+  cart.forEach(it=>{
+    const row = document.createElement('div');
+    row.className = 'cart-item';
+    row.innerHTML = `<div>${it.nombre} x${it.quantity} - ${formatPrice(it.precio * it.quantity)}</div>
+      <div><button style="background:none;border:0;cursor:pointer" onclick="removeFromCart(${it.id})">🗑️</button></div>`;
+    cartItemsEl.appendChild(row);
+  });
+}
+window.removeFromCart = function(id){
+  cart = cart.filter(i => Number(i.id) !== Number(id));
+  renderCartModal();
+  renderCartCount();
+};
+
+if(!isCatalogMode){
+  document.getElementById('cartButton').addEventListener('click', ()=>{
+    renderCartModal();
+    document.getElementById('cartModal').classList.add('active');
+  });
+  document.getElementById('closeCart').addEventListener('click', ()=> {
+    document.getElementById('cartModal').classList.remove('active');
+  });
+  document.getElementById('clearCart').addEventListener('click', ()=>{
+    if(confirm('Vaciar carrito?')){ cart = []; renderCartModal(); renderCartCount(); }
+  });
+  document.getElementById('sendOrder').addEventListener('click', async ()=>{
+    if(cart.length === 0){ alert('Carrito vacío'); return; }
+    const payload = {
+      table_number: Number(mesaParam),
+      items: cart.map(i => ({ product_id: Number(i.id), quantity: i.quantity }))
+    };
+    try{
+      const res = await fetch(PEDIDOS_URL, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+      if(!res.ok) throw new Error('Error ' + res.status);
+      showNotification('Pedido enviado', 'green');
+      cart = [];
+      renderCartModal(); renderCartCount();
+      document.getElementById('cartModal').classList.remove('active');
+    }catch(err){
+      showNotification('No se pudo enviar el pedido', 'crimson');
+    }
+  });
+}
+
+document.getElementById('btnDrink').addEventListener('click', ()=>{
+  currentCategory = 'drink';
+  document.getElementById('btnDrink').classList.add('active');
+  document.getElementById('btnFood').classList.remove('active');
+  renderAll();
+});
+document.getElementById('btnFood').addEventListener('click', ()=>{
+  currentCategory = 'food';
+  document.getElementById('btnFood').classList.add('active');
+  document.getElementById('btnDrink').classList.remove('active');
+  renderAll();
+});
+</script>
 </body>
+</html>
